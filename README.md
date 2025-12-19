@@ -163,4 +163,3 @@ Issues and feature requests: https://github.com/eyecantell/textual-capture/issue
 ### License
 
 MIT © 2025 Paul Neumann
-```
