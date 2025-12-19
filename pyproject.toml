@@ -1,6 +1,6 @@
 [project]
 name = "textual-capture"
-version = "0.1.0"
+version = "0.2.0"
 description = "Sequenced screen capture for Textual TUI applications. Enables AI assistants to review and test TUIs."
 readme = "README.md"
 authors = [
