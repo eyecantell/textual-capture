@@ -14,6 +14,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -37,7 +38,7 @@ keywords = [
     "automation",
     "claude-code",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "textual>=6.11.0",
     "tomli>=2.0.0; python_version < '3.11'",
@@ -74,7 +75,7 @@ lint = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py310"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
@@ -130,7 +131,7 @@ skip_covered = false
 skip_empty = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 check_untyped_defs = true
