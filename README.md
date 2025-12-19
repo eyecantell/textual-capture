@@ -63,7 +63,9 @@ key = "q"
 Then run:
 
 ```bash
-textual-capture demo_sequence.toml
+textual-capture demo_sequence.toml           # Default: quiet mode
+textual-capture demo_sequence.toml --verbose # Show all actions
+textual-capture demo_sequence.toml --quiet   # Errors only
 ```
 
 This will:
@@ -94,28 +96,37 @@ This will:
 In your `.toml` file:
 
 ```toml
-app_module = "path.to.module"      # Required
-app_class = "MyApp"                # Required
-screen_width = 100                 # Optional (default: 80)
-screen_height = 40                 # Optional (default: 40)
-initial_delay = 1.0                # Optional
-scroll_to_top = true               # Optional (press "home" at start)
+# Required fields
+app_module = "path.to.module"      # Module containing your Textual app
+app_class = "MyApp"                # Textual App class name
+
+# Optional configuration
+screen_width = 100                 # Terminal width (default: 80)
+screen_height = 40                 # Terminal height (default: 40)
+initial_delay = 1.0                # Wait before first action (default: 1.0)
+scroll_to_top = true               # Press "home" at start (default: true)
+module_path = "path/to/modules"    # Add to sys.path for imports (optional)
+
+# Action steps
+[[step]]
+type = "press"                     # Press keyboard keys
+key = "tab,down,enter"             # Comma-separated keys
 
 [[step]]
-type = "press" | "click" | "delay" | "capture"
+type = "click"                     # Click a button
+label = "Run Selected"             # Button text (spaces removed for ID)
 
-# press: comma-separated keys
-key = "tab,down,enter"
+[[step]]
+type = "delay"                     # Pause for timing
+seconds = 1.5                      # Seconds to wait
 
-# click: button label (spaces removed for ID matching)
-label = "Run Selected"
-
-# delay in seconds
-seconds = 1.5
-
-# capture: output base name
-output = "my_state"  # saves my_state.svg + my_state.txt
+[[step]]
+type = "capture"                   # Take screenshot
+output = "my_state"                # Optional: custom name (saves my_state.svg + .txt)
+                                   # If omitted: auto-generates capture_001.svg, capture_002.svg, etc.
 ```
+
+**Auto-sequencing**: Omit the `output` field in capture actions to automatically generate sequential filenames (`capture_001`, `capture_002`, etc.). Mix and match named and auto-sequenced captures as needed!
 
 ---
 

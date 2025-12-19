@@ -1,0 +1,60 @@
+# Basic example configuration for textual-capture
+# This demonstrates all major features and action types
+
+app_module = "demo_app"
+app_class = "DemoApp"
+screen_width = 90
+screen_height = 40
+
+# Optional configuration (showing defaults)
+initial_delay = 1.0        # Seconds to wait for initial render
+scroll_to_top = true       # Press 'home' key at start
+module_path = "."          # Look for demo_app in current directory
+
+# Action sequence
+# Each [[step]] defines one action in the capture sequence
+
+# 1. Navigate with keyboard (comma-separated keys)
+[[step]]
+type = "press"
+key = "tab,tab"            # Tab twice to focus "Cancel" button
+
+# 2. Wait for visual state to settle
+[[step]]
+type = "delay"
+seconds = 0.5
+
+# 3. Capture first screenshot (explicit name)
+[[step]]
+type = "capture"
+output = "initial_state"   # Saves initial_state.svg and initial_state.txt
+
+# 4. Navigate back and press enter
+[[step]]
+type = "press"
+key = "shift+tab,enter"    # Navigate back and activate button
+
+# 5. Capture after button press (auto-sequencing)
+[[step]]
+type = "capture"
+# Output omitted - will auto-generate as capture_001.svg
+
+# 6. Click a button by label
+[[step]]
+type = "click"
+label = "Run Selected"     # Finds button with this text
+
+# 7. Wait to show the result
+[[step]]
+type = "delay"
+seconds = 1.0
+
+# 8. Final capture (auto-sequencing continues)
+[[step]]
+type = "capture"
+# Will auto-generate as capture_002.svg (counter continues)
+
+# 9. Press 'q' to quit cleanly
+[[step]]
+type = "press"
+key = "q"

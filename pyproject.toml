@@ -33,7 +33,11 @@ keywords = [
 requires-python = ">=3.10"
 dependencies = [
     "textual>=6.11.0",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
+
+[project.scripts]
+textual-capture = "textual_capture.capture:main"
 
 [project.urls]
 Homepage = "https://github.com/eyecantell/textual-capture"
