@@ -31,7 +31,7 @@ jobs:
         run: pipx install pdm
 
       - name: Install dependencies
-        run: pdm install -G test
+        run: pdm install -G test -G lint
 
       - name: Lint with Ruff
         run: pdm run ruff check src tests
