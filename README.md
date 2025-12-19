@@ -97,6 +97,8 @@ LLM:  Creates llm_review.toml → Runs textual-capture → Analyzes .txt output 
 
 See `examples/llm_review.toml` for a template AI assistants can adapt.
 
+**Claude Code Integration**: Copy `CLAUDE_SNIPPET.md` into your project's `CLAUDE.md` to give Claude Code full context on using textual-capture for your TUI app.
+
 ---
 
 ### Why textual-capture?
