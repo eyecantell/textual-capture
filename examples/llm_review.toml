@@ -1,0 +1,119 @@
+# LLM-Friendly TUI Review Template
+# Copy and adapt this for quick Textual app reviews
+
+# ============================================================================
+# REQUIRED: Update these for the target app
+# ============================================================================
+app_module = "your_app_module"     # Module containing the Textual app
+app_class = "YourApp"              # Textual App class name
+module_path = "."                  # Path to find the module (usually "." for current directory)
+
+# ============================================================================
+# Optional: Adjust screen size if needed
+# ============================================================================
+screen_width = 100
+screen_height = 40
+
+# ============================================================================
+# Optional: Timing configuration
+# ============================================================================
+initial_delay = 1.0                # Wait before first action (default: 1.0)
+scroll_to_top = true               # Press "home" at start (default: true)
+
+# ============================================================================
+# Basic review sequence: capture initial state + one interaction
+# ============================================================================
+
+[[step]]
+type = "capture"
+output = "initial_state"
+# Captures the app's starting state
+# Creates: initial_state.svg and initial_state.txt
+
+[[step]]
+type = "press"
+key = "tab"
+# Navigate to next focusable element
+# Use comma-separated keys: "tab,enter,down" for multiple presses
+
+[[step]]
+type = "delay"
+seconds = 0.3
+# Wait for UI update before next step
+
+[[step]]
+type = "capture"
+# Auto-generates capture_001.svg (output field omitted)
+# Subsequent captures will be: capture_002.svg, capture_003.svg, etc.
+
+# ============================================================================
+# Add more steps as needed
+# ============================================================================
+
+# Press multiple keys in sequence
+# [[step]]
+# type = "press"
+# key = "tab,tab,enter,down"
+# # Comma-separated: tab, tab, enter, down
+
+# Click a button by its label
+# [[step]]
+# type = "click"
+# label = "Settings"
+# # Finds button with text "Settings" (spaces in label are removed for ID matching)
+
+# Wait between actions
+# [[step]]
+# type = "delay"
+# seconds = 1.0
+
+# Capture with a specific name
+# [[step]]
+# type = "capture"
+# output = "settings_dialog"
+# # Creates: settings_dialog.svg and settings_dialog.txt
+
+# Capture with auto-generated name
+# [[step]]
+# type = "capture"
+# # Creates: capture_002.svg (counter continues even after named captures)
+
+# ============================================================================
+# Example: Complete workflow for reviewing a dialog
+# ============================================================================
+
+# [[step]]
+# type = "press"
+# key = "shift+tab"
+# # Navigate backward
+
+# [[step]]
+# type = "click"
+# label = "Run Selected"
+# # Click the "Run Selected" button
+
+# [[step]]
+# type = "delay"
+# seconds = 0.5
+# # Wait for dialog to appear
+
+# [[step]]
+# type = "capture"
+# output = "after_run"
+# # Capture the result
+
+# [[step]]
+# type = "press"
+# key = "q"
+# # Quit the app cleanly (if supported)
+
+# ============================================================================
+# Tips for LLMs using this template:
+# ============================================================================
+# 1. Always set module_path to "." or the appropriate directory
+# 2. Read the .txt output files - they contain the text representation perfect for analysis
+# 3. Use --verbose flag when running to see all actions: `textual-capture llm_review.toml --verbose`
+# 4. Omit "output" in capture steps to auto-generate sequential names
+# 5. Use named outputs for specific states you want to reference later
+# 6. Test keyboard navigation with "tab", "shift+tab", "up", "down", "enter"
+# 7. Click buttons using their visible label text (spaces are automatically removed)

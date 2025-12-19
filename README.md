@@ -11,6 +11,7 @@
 `textual-capture` lets you define **reproducible sequences** of interactions (key presses, clicks, delays) in your Textual apps and automatically capture **multiple SVG + text snapshots** at key moments.
 
 Perfect for:
+- **🤖 LLM-driven TUI review and testing** (primary use case!)
 - Creating consistent documentation screenshots
 - Building demos and tutorials
 - Generating "before/after" visuals for READMEs
@@ -74,6 +75,27 @@ This will:
 - Wait 2 seconds
 - Save `running_state.svg` and `running_state.txt`
 - Press `q` to quit cleanly
+
+---
+
+### 🤖 LLM-Driven TUI Review
+
+**Primary Use Case**: Enable AI assistants like Claude Code to review and test your TUI applications by capturing screenshots at different states.
+
+**When working with an LLM on a Textual app, the LLM can:**
+- Generate TOML configurations on the fly to capture specific UI states
+- Automatically verify UI layout changes after code modifications
+- Review button placement, labels, and visual hierarchy from text output
+- Test interaction sequences without manual intervention
+
+**Example workflow:**
+```
+User: "I just added a new settings dialog. Can you check if it looks good?"
+LLM:  Creates llm_review.toml → Runs textual-capture → Analyzes .txt output →
+      Reports: "Settings dialog opens correctly, but Cancel button is off-screen..."
+```
+
+See `examples/llm_review.toml` for a template AI assistants can adapt.
 
 ---
 

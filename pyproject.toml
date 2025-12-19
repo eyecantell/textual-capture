@@ -29,6 +29,13 @@ keywords = [
     "screenshot",
     "screen capture",
     "developer-tools",
+    "ai",
+    "llm",
+    "ai-tools",
+    "automated-testing",
+    "testing",
+    "automation",
+    "claude-code",
 ]
 requires-python = ">=3.10"
 dependencies = [
