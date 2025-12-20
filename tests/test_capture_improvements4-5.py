@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+
 from textual_capture.capture import capture, execute_action, validate_config
 
 import logging
@@ -197,6 +198,7 @@ app_class = "SimpleTestApp"
 [[step]]
 type = "capture"
 output = "formatted"
+tooltip_include_empty = true
 """
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)
@@ -213,9 +215,11 @@ output = "formatted"
         assert "# Selector: *" in content
         assert "# Timestamp:" in content
 
-        # Check widget entries
+        # Check widget entries (SimpleTestApp has buttons without tooltips)
         assert "Button#ClickMe:" in content
         assert "Button#AnotherButton:" in content
+        # Since SimpleTestApp buttons don't have tooltips, should show "(no tooltip)"
+        assert "(no tooltip)" in content
 
     async def test_capture_tooltips_custom_selector(self, tmp_path: Path, temp_dir: Path):
         """Custom selector filters which widgets are captured."""
@@ -227,6 +231,7 @@ app_class = "SimpleTestApp"
 type = "capture"
 output = "buttons_only"
 tooltip_selector = "Button"
+tooltip_include_empty = true
 """
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)
@@ -241,6 +246,7 @@ tooltip_selector = "Button"
 
         # Should have button entries
         assert "Button#" in content
+        assert "ClickMe" in content or "AnotherButton" in content
 
     async def test_capture_tooltips_include_empty_false(self, tmp_path: Path, temp_dir: Path):
         """By default, widgets without tooltips are excluded."""

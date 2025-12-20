@@ -53,7 +53,9 @@ def _extract_tooltips(app: Any, selector: str, include_empty: bool, capture_name
     ]
 
     try:
-        widgets = app.query(selector)
+        # Query returns a DOMQuery object, need to iterate through results
+        query_result = app.query(selector)
+        widgets = list(query_result.results())
 
         for widget in widgets:
             # Get widget identifier
