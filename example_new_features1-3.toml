@@ -1,0 +1,72 @@
+# Example configuration demonstrating Features #1-3
+# Run with: textual-capture example_new_features.toml --dry-run
+
+app_module = "your_app"
+app_class = "YourApp"
+
+# Feature #2: Output Directory Configuration
+# All captures will be saved to this directory (created if missing)
+output_dir = "./screenshots"
+
+# Feature #3: Selective Format Configuration (Global Default)
+# Default to SVG only for faster execution and less clutter
+formats = ["svg"]
+
+screen_width = 100
+screen_height = 40
+
+# Capture initial state with default format (svg)
+[[step]]
+type = "capture"
+output = "initial_state"
+
+# Navigate through UI
+[[step]]
+type = "press"
+key = "tab,tab,enter"
+
+[[step]]
+type = "delay"
+seconds = 1.0
+
+# Feature #3: Per-step format override
+# This capture needs both formats for documentation
+[[step]]
+type = "capture"
+output = "important_state"
+formats = ["svg", "txt"]
+
+# More navigation
+[[step]]
+type = "click"
+label = "Submit"
+
+# Auto-sequenced capture (will be capture_001.svg)
+[[step]]
+type = "capture"
+
+# Final state - text only for LLM review
+[[step]]
+type = "capture"
+output = "final_state"
+formats = ["txt"]
+
+# Feature #1: Dry Run
+# Run this config with --dry-run to see the execution plan:
+#   textual-capture example_new_features.toml --dry-run
+#
+# Expected output:
+#   Configuration: example_new_features.toml
+#   App: your_app.YourApp
+#   Screen: 100x40
+#   Output Directory: ./screenshots
+#   Default Formats: svg
+#   
+#   Planned Steps (6 total):
+#     1. capture: output="initial_state", formats=[svg]
+#     2. press: keys="tab,tab,enter"
+#     3. delay: 1.0s
+#     4. capture: output="important_state", formats=[svg, txt]
+#     5. click: label="Submit"
+#     6. capture: output="capture_001", formats=[svg]
+#     7. capture: output="final_state", formats=[txt]

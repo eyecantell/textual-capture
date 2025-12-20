@@ -67,6 +67,7 @@ Then run:
 textual-capture demo_sequence.toml           # Default: quiet mode
 textual-capture demo_sequence.toml --verbose # Show all actions
 textual-capture demo_sequence.toml --quiet   # Errors only
+textual-capture demo_sequence.toml --dry-run # Validate without executing
 ```
 
 This will:
@@ -111,6 +112,9 @@ See `examples/llm_review.toml` for a template AI assistants can adapt.
 | Delays between actions        | No                      | No                       | Yes                 |
 | Multiple timed captures       | No                      | No                       | Yes                 |
 | Human-readable config (TOML)  | No                      | No                       | Yes                 |
+| Dry-run validation            | No                      | No                       | Yes                 |
+| Configurable output directory | No                      | No                       | Yes                 |
+| Selective format generation   | No                      | No                       | Yes                 |
 | Works with any Textual app    | Yes                     | Yes                      | Yes                 |
 
 ---
@@ -131,6 +135,10 @@ initial_delay = 1.0                # Wait before first action (default: 1.0)
 scroll_to_top = true               # Press "home" at start (default: true)
 module_path = "path/to/modules"    # Add to sys.path for imports (optional)
 
+# Output configuration
+output_dir = "./screenshots"       # Directory for all captures (default: ".")
+formats = ["svg", "txt"]           # Default formats (default: ["svg", "txt"])
+
 # Action steps
 [[step]]
 type = "press"                     # Press keyboard keys
@@ -147,10 +155,176 @@ seconds = 1.5                      # Seconds to wait
 [[step]]
 type = "capture"                   # Take screenshot
 output = "my_state"                # Optional: custom name (saves my_state.svg + .txt)
-                                   # If omitted: auto-generates capture_001.svg, capture_002.svg, etc.
+formats = ["svg"]                  # Optional: override global formats for this capture
+                                   # If output omitted: auto-generates capture_001.svg, etc.
 ```
 
-**Auto-sequencing**: Omit the `output` field in capture actions to automatically generate sequential filenames (`capture_001`, `capture_002`, etc.). Mix and match named and auto-sequenced captures as needed!
+---
+
+### Output Organization
+
+**Organize captures with `output_dir`:**
+
+```toml
+# Keep your project root clean
+output_dir = "./screenshots"
+
+[[step]]
+type = "capture"
+output = "dashboard"
+```
+
+Result: Creates `./screenshots/dashboard.svg` and `./screenshots/dashboard.txt`
+
+The output directory is created automatically if it doesn't exist, including any parent directories.
+
+---
+
+### Selective Format Generation
+
+**Control which formats are generated:**
+
+```toml
+# Global default - applies to all captures
+formats = ["svg"]  # Only generate SVG files
+
+[[step]]
+type = "capture"
+output = "quick_check"
+# Uses global setting: svg only
+
+[[step]]
+type = "capture"
+output = "detailed_view"
+formats = ["svg", "txt"]  # Override: generate both for this capture
+```
+
+**Valid formats**: `svg`, `txt`
+
+**Use cases:**
+- **SVG only** (`formats = ["svg"]`): Faster execution, visual documentation
+- **TXT only** (`formats = ["txt"]`): LLM review workflows, automated analysis
+- **Both** (`formats = ["svg", "txt"]`): Complete documentation (default)
+
+**Benefits:**
+- ~50% faster when using single format
+- Reduces file clutter
+- Optimizes for specific workflows (visual vs. programmatic review)
+
+---
+
+### Dry-Run Validation
+
+**Validate configurations without executing:**
+
+```bash
+textual-capture sequence.toml --dry-run
+```
+
+Output shows:
+- Configuration summary
+- Planned execution steps with details
+- Auto-generated capture names
+- Module import validation
+- Success/failure status
+
+**Example output:**
+```
+Configuration: demo_sequence.toml
+App: my_app.MyApp
+Screen: 90x40
+Output Directory: ./screenshots
+Default Formats: svg, txt
+Initial Delay: 2.0s
+Scroll to Top: True
+
+Planned Steps (4 total):
+  1. press: keys="tab,tab,enter"
+  2. delay: 2.0s
+  3. capture: output="running_state", formats=[svg, txt]
+  4. press: keys="q"
+
+Validating module import...
+✓ Successfully imported MyApp from my_app
+
+✓ Configuration valid and ready to execute
+```
+
+**Use dry-run for:**
+- Debugging complex sequences
+- CI/CD validation pipelines
+- Sharing sequences with others or LLMs
+- Quick syntax checking
+
+---
+
+### Auto-Sequencing
+
+**Omit the `output` field to automatically generate sequential filenames:**
+
+```toml
+[[step]]
+type = "capture"
+# Auto-generates: capture_001.svg, capture_001.txt
+
+[[step]]
+type = "press"
+key = "down"
+
+[[step]]
+type = "capture"
+# Auto-generates: capture_002.svg, capture_002.txt
+
+[[step]]
+type = "capture"
+output = "named_state"
+# Uses explicit name: named_state.svg, named_state.txt
+
+[[step]]
+type = "capture"
+# Auto-generates: capture_003.svg, capture_003.txt (counter continues)
+```
+
+Mix and match named and auto-sequenced captures as needed!
+
+---
+
+### Common Workflows
+
+#### Fast Visual Documentation
+```toml
+output_dir = "./docs/screenshots"
+formats = ["svg"]  # Visual only, 50% faster
+
+[[step]]
+type = "capture"
+# Quick captures without text overhead
+```
+
+#### LLM-Driven Analysis
+```toml
+output_dir = "./llm_review"
+formats = ["txt"]  # Text only for programmatic review
+
+[[step]]
+type = "press"
+key = "tab,enter"
+
+[[step]]
+type = "capture"
+# Creates text files LLMs can easily analyze
+```
+
+#### Complete Documentation
+```toml
+output_dir = "./screenshots"
+formats = ["svg", "txt"]  # Default: both formats
+
+[[step]]
+type = "capture"
+output = "feature_demo"
+# Full documentation with visual and text representations
+```
 
 ---
 

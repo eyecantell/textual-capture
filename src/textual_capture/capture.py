@@ -8,6 +8,7 @@ Usage:
     textual-capture sequence.toml              # Quiet mode (errors only)
     textual-capture sequence.toml --verbose    # Show all actions
     textual-capture sequence.toml --quiet      # Suppress all output
+    textual-capture sequence.toml --dry-run    # Validate without executing
 """
 
 import argparse
@@ -26,14 +27,20 @@ except ModuleNotFoundError:
 # Configure logging
 logger = logging.getLogger("textual_capture")
 
+# Valid output formats
+VALID_FORMATS = ["svg", "txt"]
 
-async def execute_action(pilot: Any, action: dict[str, Any], capture_counter: dict[str, int]) -> None:
+
+async def execute_action(
+    pilot: Any, action: dict[str, Any], config: dict[str, Any], capture_counter: dict[str, int]
+) -> None:
     """
     Execute a single action in the sequence.
 
     Args:
         pilot: Textual pilot instance for controlling the app
         action: Action configuration dict with 'type' and action-specific fields
+        config: Full TOML configuration (for output_dir, formats, etc.)
         capture_counter: Mutable dict tracking number of captures (for auto-sequencing)
 
     Raises:
@@ -75,18 +82,24 @@ async def execute_action(pilot: Any, action: dict[str, Any], capture_counter: di
             raise
 
     elif action_type == "capture":
+        # Get output directory from config
+        output_dir = Path(config.get("output_dir", "."))
+
         # Auto-sequencing: if output not specified, generate sequential name
         output = action.get("output")
         if not output:
             capture_counter["count"] += 1
             output = f"capture_{capture_counter['count']:03d}"
 
-        svg_path = f"{output}.svg"
-        txt_path = f"{output}.txt"
+        # Get formats: per-step override or global default
+        formats = action.get("formats", config.get("formats", VALID_FORMATS))
 
-        pilot.app.save_screenshot(svg_path)
-        pilot.app.save_screenshot(txt_path)
-        logger.info(f"Captured screenshots: {svg_path}, {txt_path}")
+        # Save each requested format
+        for fmt in formats:
+            file_path = output_dir / f"{output}.{fmt}"
+            pilot.app.save_screenshot(str(file_path))
+
+        logger.info(f"Captured screenshots: {output}.{{{','.join(formats)}}} in {output_dir}")
 
     else:
         raise ValueError(f"Unknown action type: {action_type}")
@@ -108,6 +121,26 @@ def validate_config(config: dict[str, Any]) -> None:
     if "app_class" not in config:
         raise ValueError("TOML config missing required field: 'app_class'")
 
+    # Validate output_dir if specified
+    if "output_dir" in config:
+        output_dir = Path(config["output_dir"])
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            raise ValueError(f"Cannot create output directory '{output_dir}': {e}") from e
+
+    # Validate formats if specified
+    if "formats" in config:
+        formats = config["formats"]
+        if not isinstance(formats, list):
+            raise ValueError(f"'formats' must be a list, got {type(formats).__name__}")
+
+        invalid_formats = set(formats) - set(VALID_FORMATS)
+        if invalid_formats:
+            raise ValueError(
+                f"Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}"
+            )
+
     # Validate action steps
     steps = config.get("step", [])
     for i, step in enumerate(steps):
@@ -122,6 +155,83 @@ def validate_config(config: dict[str, Any]) -> None:
         # Validate type-specific required fields
         if step_type == "click" and "label" not in step:
             raise ValueError(f"Step {i}: 'click' action missing required 'label' field")
+
+        # Validate per-step formats if specified
+        if step_type == "capture" and "formats" in step:
+            step_formats = step["formats"]
+            if not isinstance(step_formats, list):
+                raise ValueError(f"Step {i}: 'formats' must be a list, got {type(step_formats).__name__}")
+
+            invalid_formats = set(step_formats) - set(VALID_FORMATS)
+            if invalid_formats:
+                raise ValueError(
+                    f"Step {i}: Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}"
+                )
+
+
+def dry_run(config: dict[str, Any], toml_path: str) -> None:
+    """
+    Perform a dry run - validate config and print execution plan without running.
+
+    Args:
+        config: Parsed TOML configuration
+        toml_path: Path to TOML file (for display)
+    """
+    print(f"Configuration: {toml_path}")
+    print(f"App: {config['app_module']}.{config['app_class']}")
+    print(f"Screen: {config.get('screen_width', 80)}x{config.get('screen_height', 40)}")
+    print(f"Output Directory: {config.get('output_dir', '.')}")
+    print(f"Default Formats: {', '.join(config.get('formats', VALID_FORMATS))}")
+    print(f"Initial Delay: {config.get('initial_delay', 1.0)}s")
+    print(f"Scroll to Top: {config.get('scroll_to_top', True)}")
+
+    steps = config.get("step", [])
+    print(f"\nPlanned Steps ({len(steps)} total):")
+
+    capture_counter = 0
+    for i, step in enumerate(steps, 1):
+        step_type = step.get("type")
+        details = []
+
+        if step_type == "press":
+            details.append(f"keys=\"{step.get('key', '')}\"")
+        elif step_type == "delay":
+            details.append(f"{step.get('seconds', 0.5)}s")
+        elif step_type == "click":
+            details.append(f"label=\"{step.get('label', '')}\"")
+        elif step_type == "capture":
+            output = step.get("output")
+            if not output:
+                capture_counter += 1
+                output = f"capture_{capture_counter:03d}"
+            formats = step.get("formats", config.get("formats", VALID_FORMATS))
+            details.append(f"output=\"{output}\"")
+            details.append(f"formats=[{', '.join(formats)}]")
+
+        detail_str = ", ".join(details) if details else ""
+        print(f"  {i}. {step_type}: {detail_str}")
+
+    # Test dynamic import (without running)
+    print(f"\nValidating module import...")
+    try:
+        module_path = config.get("module_path")
+        if module_path:
+            sys.path.insert(0, str(Path(module_path).resolve()))
+
+        app_module = config["app_module"]
+        app_class_name = config["app_class"]
+
+        module = __import__(app_module, fromlist=[app_class_name])
+        AppClass = getattr(module, app_class_name)
+        print(f"✓ Successfully imported {app_class_name} from {app_module}")
+    except ImportError as e:
+        print(f"✗ Import failed: {e}")
+        sys.exit(1)
+    except AttributeError as e:
+        print(f"✗ Class not found: {e}")
+        sys.exit(1)
+
+    print("\n✓ Configuration valid and ready to execute")
 
 
 async def capture(toml_path: str) -> None:
@@ -201,7 +311,7 @@ async def capture(toml_path: str) -> None:
         for i, step in enumerate(steps):
             logger.info(f"Executing step {i + 1}/{len(steps)}: {step.get('type')}")
             try:
-                await execute_action(pilot, step, capture_counter)
+                await execute_action(pilot, step, config, capture_counter)
             except Exception as e:
                 logger.error(f"Step {i + 1} failed: {e}")
                 raise
@@ -220,6 +330,7 @@ Examples:
     textual-capture demo.toml              # Run with default logging (errors only)
     textual-capture demo.toml --verbose    # Show all actions as they execute
     textual-capture demo.toml --quiet      # Suppress all output except errors
+    textual-capture demo.toml --dry-run    # Validate config and show plan
 
 Configuration:
     Create a .toml file defining your app and interaction sequence.
@@ -233,6 +344,10 @@ Configuration:
 
     parser.add_argument("-q", "--quiet", action="store_true", help="Suppress all output except errors")
 
+    parser.add_argument(
+        "-n", "--dry-run", action="store_true", help="Validate config and show execution plan without running"
+    )
+
     args = parser.parse_args()
 
     # Configure logging based on flags
@@ -244,6 +359,27 @@ Configuration:
         log_level = logging.WARNING
 
     logging.basicConfig(level=log_level, format="%(levelname)s: %(message)s", stream=sys.stderr)
+
+    # Handle dry-run mode
+    if args.dry_run:
+        try:
+            path = Path(args.toml_file)
+            if not path.exists():
+                logger.error(f"TOML file not found: {args.toml_file}")
+                sys.exit(1)
+
+            with open(path, "rb") as f:
+                config = tomllib.load(f)
+
+            validate_config(config)
+            dry_run(config, args.toml_file)
+            sys.exit(0)
+        except ValueError as e:
+            logger.error(f"Configuration error: {e}")
+            sys.exit(1)
+        except Exception as e:
+            logger.error(f"Failed to load configuration: {e}")
+            sys.exit(1)
 
     # Run capture
     try:

@@ -57,7 +57,7 @@ class TestActionExecution:
         pilot.pause = AsyncMock()
 
         action = {"type": "press", "key": "tab"}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         pilot.press.assert_called_once_with("tab")
 
@@ -68,7 +68,7 @@ class TestActionExecution:
         pilot.pause = AsyncMock()
 
         action = {"type": "press", "key": "tab,enter,down"}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         assert pilot.press.call_count == 3
         calls = [call[0][0] for call in pilot.press.call_args_list]
@@ -80,7 +80,7 @@ class TestActionExecution:
         pilot.pause = AsyncMock()
 
         action = {"type": "delay", "seconds": 1.5}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         pilot.pause.assert_called_once_with(1.5)
 
@@ -90,7 +90,7 @@ class TestActionExecution:
         pilot.pause = AsyncMock()
 
         action = {"type": "delay"}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         pilot.pause.assert_called_once_with(0.5)
 
@@ -100,7 +100,7 @@ class TestActionExecution:
         pilot.click = AsyncMock()
 
         action = {"type": "click", "label": "Click Me"}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         pilot.click.assert_called_once_with("Button#ClickMe")
 
@@ -110,7 +110,7 @@ class TestActionExecution:
         action = {"type": "click"}
 
         with pytest.raises(ValueError, match="missing required 'label' field"):
-            await execute_action(pilot, action, {"count": 0})
+            await execute_action(pilot, action, {}, {"count": 0})
 
     async def test_capture_action_with_explicit_name(self, temp_dir: Path):
         """Capture action with explicit output name saves files."""
@@ -119,7 +119,7 @@ class TestActionExecution:
         pilot.app.save_screenshot = Mock()
 
         action = {"type": "capture", "output": "my_screenshot"}
-        await execute_action(pilot, action, {"count": 0})
+        await execute_action(pilot, action, {}, {"count": 0})
 
         assert pilot.app.save_screenshot.call_count == 2
         calls = [call[0][0] for call in pilot.app.save_screenshot.call_args_list]
@@ -136,7 +136,7 @@ class TestActionExecution:
         action = {"type": "capture"}
 
         # First capture
-        await execute_action(pilot, action, counter)
+        await execute_action(pilot, action, {}, counter)
         calls = [call[0][0] for call in pilot.app.save_screenshot.call_args_list]
         assert "capture_001.svg" in calls
         assert "capture_001.txt" in calls
@@ -145,7 +145,7 @@ class TestActionExecution:
         pilot.app.save_screenshot.reset_mock()
 
         # Second capture
-        await execute_action(pilot, action, counter)
+        await execute_action(pilot, action, {}, counter)
         calls = [call[0][0] for call in pilot.app.save_screenshot.call_args_list]
         assert "capture_002.svg" in calls
         assert "capture_002.txt" in calls
@@ -156,7 +156,7 @@ class TestActionExecution:
         action = {"type": "unknown_action"}
 
         with pytest.raises(ValueError, match="Unknown action type: unknown_action"):
-            await execute_action(pilot, action, {"count": 0})
+            await execute_action(pilot, action, {}, {"count": 0})
 
 
 class TestDynamicImport:
