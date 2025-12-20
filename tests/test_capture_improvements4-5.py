@@ -231,7 +231,7 @@ app_class = "SimpleTestApp"
 [[step]]
 type = "capture"
 output = "buttons_only"
-tooltip_selector = "Button"
+widget_selector = "Button"
 tooltip_include_empty = true
 """
         toml_file = tmp_path / "config.toml"
@@ -399,15 +399,15 @@ output = "tooltips_only"
         with pytest.raises(ValueError, match="'capture_tooltips' must be a boolean"):
             validate_config(config)
 
-    def test_validate_tooltip_selector_string(self):
-        """Validation fails if tooltip_selector is not string."""
+    def test_validate_widget_selector_string(self):
+        """Validation fails if widget_selector is not string."""
         config = {
             "app_module": "test",
             "app_class": "Test",
-            "tooltip_selector": 123,  # Should be string
+            "widget_selector": 123,  # Should be string
         }
 
-        with pytest.raises(ValueError, match="'tooltip_selector' must be a string"):
+        with pytest.raises(ValueError, match="'widget_selector' must be a string"):
             validate_config(config)
 
     def test_validate_tooltip_include_empty_bool(self):
@@ -493,7 +493,7 @@ pause_between = 0.5
 app_module = "tests.conftest"
 app_class = "SimpleTestApp"
 capture_tooltips = true
-tooltip_selector = "Button"
+widget_selector = "Button"
 
 [[step]]
 type = "capture"
@@ -523,7 +523,7 @@ app_class = "SimpleTestApp"
 [[step]]
 type = "capture"
 output = "test"
-tooltip_selector = "Button"
+widget_selector = "Button"
 """
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)

@@ -60,7 +60,7 @@ pause_between = 0.5  # Override default 0.2s
 ```toml
 # Global defaults
 capture_tooltips = true          # Default: enabled
-tooltip_selector = "*"           # Default: all widgets
+widget_selector = "*"           # Default: all widgets
 tooltip_include_empty = false    # Default: skip empty
 
 # Basic capture (uses defaults)
@@ -87,7 +87,7 @@ capture_tooltips = true
 [[step]]
 type = "capture"
 output = "buttons"
-tooltip_selector = "Button"
+widget_selector = "Button"
 
 # Include empty tooltips
 [[step]]
@@ -279,7 +279,7 @@ capture_tooltips = false
 type = "capture"
 output = "button_tooltips"
 formats = []
-tooltip_selector = "Button"
+widget_selector = "Button"
 capture_tooltips = true
 ```
 

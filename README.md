@@ -237,7 +237,7 @@ formats = ["svg", "txt"]           # Formats to generate (default: both)
 
 # Tooltips
 capture_tooltips = true            # Capture tooltips (default: true)
-tooltip_selector = "*"             # CSS selector (default: all widgets)
+widget_selector = "*"             # CSS selector (default: all widgets)
 tooltip_include_empty = false      # Show widgets without tooltips (default: false)
 ```
 
@@ -277,7 +277,7 @@ type = "capture"
 output = "my_state"                # Optional: custom name
 formats = ["svg", "txt"]           # Optional: override global
 capture_tooltips = true            # Optional: override global
-tooltip_selector = "Button"        # Optional: custom selector
+widget_selector = "Button"        # Optional: custom selector
 tooltip_include_empty = false      # Optional: override global
 ```
 
@@ -322,7 +322,7 @@ output = "all_tooltips"
 [[step]]
 type = "capture"
 output = "button_tooltips"
-tooltip_selector = "Button"
+widget_selector = "Button"
 
 # Include widgets without tooltips
 [[step]]

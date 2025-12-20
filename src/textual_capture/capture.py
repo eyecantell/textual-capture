@@ -178,7 +178,7 @@ async def execute_action(
         capture_tooltips = action.get("capture_tooltips", config.get("capture_tooltips", True))
 
         if capture_tooltips:
-            selector = action.get("tooltip_selector", config.get("tooltip_selector", "*"))
+            selector = action.get("widget_selector", config.get("widget_selector", "*"))
             include_empty = action.get("tooltip_include_empty", config.get("tooltip_include_empty", False))
 
             tooltip_path = output_dir / f"{output}_tooltips.txt"
@@ -231,8 +231,8 @@ def validate_config(config: dict[str, Any]) -> None:
     if "capture_tooltips" in config and not isinstance(config["capture_tooltips"], bool):
         raise ValueError("'capture_tooltips' must be a boolean")
 
-    if "tooltip_selector" in config and not isinstance(config["tooltip_selector"], str):
-        raise ValueError("'tooltip_selector' must be a string")
+    if "widget_selector" in config and not isinstance(config["widget_selector"], str):
+        raise ValueError("'widget_selector' must be a string")
 
     if "tooltip_include_empty" in config and not isinstance(config["tooltip_include_empty"], bool):
         raise ValueError("'tooltip_include_empty' must be a boolean")
@@ -281,8 +281,8 @@ def validate_config(config: dict[str, Any]) -> None:
             if "capture_tooltips" in step and not isinstance(step["capture_tooltips"], bool):
                 raise ValueError(f"Step {i}: 'capture_tooltips' must be a boolean")
 
-            if "tooltip_selector" in step and not isinstance(step["tooltip_selector"], str):
-                raise ValueError(f"Step {i}: 'tooltip_selector' must be a string")
+            if "widget_selector" in step and not isinstance(step["widget_selector"], str):
+                raise ValueError(f"Step {i}: 'widget_selector' must be a string")
 
             if "tooltip_include_empty" in step and not isinstance(step["tooltip_include_empty"], bool):
                 raise ValueError(f"Step {i}: 'tooltip_include_empty' must be a boolean")
@@ -313,7 +313,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
     print(f"Default Formats: {', '.join(config.get('formats', VALID_FORMATS))}")
     print(f"Capture Tooltips: {config.get('capture_tooltips', True)}")
     if config.get("capture_tooltips", True):
-        print(f"Tooltip Selector: {config.get('tooltip_selector', '*')}")
+        print(f"Tooltip Selector: {config.get('widget_selector', '*')}")
     print(f"Initial Delay: {config.get('initial_delay', 1.0)}s")
     print(f"Scroll to Top: {config.get('scroll_to_top', True)}")
 
@@ -358,7 +358,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
                 details.append(f"formats=[{', '.join(formats)}]")
 
             if capture_tooltips:
-                selector = step.get("tooltip_selector", config.get("tooltip_selector", "*"))
+                selector = step.get("widget_selector", config.get("widget_selector", "*"))
                 details.append(f"tooltips={selector}")
 
         detail_str = ", ".join(details) if details else ""

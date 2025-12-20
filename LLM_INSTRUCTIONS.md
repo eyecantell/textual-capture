@@ -29,7 +29,7 @@ formats = ["svg", "txt"]                  # Formats to generate (default: both)
 
 # Tooltip capture (enabled by default)
 capture_tooltips = true                   # Auto-capture tooltips with screenshots
-tooltip_selector = "*"                    # CSS selector for widgets (default: all)
+widget_selector = "*"                    # CSS selector for widgets (default: all)
 tooltip_include_empty = false             # Include widgets without tooltips
 
 # Screen and timing
@@ -66,7 +66,7 @@ type = "capture"
 output = "my_state"                       # Optional: custom name
 formats = ["svg", "txt"]                  # Optional: override global
 capture_tooltips = true                   # Optional: override global
-tooltip_selector = "Button"               # Optional: filter widgets
+widget_selector = "Button"               # Optional: filter widgets
 ```
 - If `output` omitted: auto-generates `capture_001`, `capture_002`, etc.
 - Creates `.svg` (visual), `.txt` (text representation), `_tooltips.txt` (widget tooltips)
@@ -279,17 +279,17 @@ Capture tooltips from specific widget types:
 [[step]]
 type = "capture"
 output = "button_tooltips"
-tooltip_selector = "Button"               # Only buttons
+widget_selector = "Button"               # Only buttons
 
 [[step]]
 type = "capture"
 output = "input_tooltips"
-tooltip_selector = "Input"                # Only inputs
+widget_selector = "Input"                # Only inputs
 
 [[step]]
 type = "capture"
 output = "important_tooltips"
-tooltip_selector = ".important"           # CSS class selector
+widget_selector = ".important"           # CSS class selector
 ```
 
 ### File Outputs
