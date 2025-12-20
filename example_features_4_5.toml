@@ -1,0 +1,121 @@
+# Example configuration demonstrating Features #4-5
+# Run with: textual-capture example_features_4_5.toml --dry-run
+
+app_module = "your_app"
+app_class = "YourApp"
+
+# Output configuration (Feature #2)
+output_dir = "./screenshots"
+
+# Format configuration (Feature #3)
+formats = ["svg", "txt"]
+
+# Tooltip configuration (Feature #5)
+capture_tooltips = true          # Enabled by default
+tooltip_selector = "*"           # Capture all widgets (default)
+tooltip_include_empty = false    # Skip widgets without tooltips (default)
+
+screen_width = 100
+screen_height = 40
+
+# Feature #4: Enhanced key press with list syntax
+[[step]]
+type = "press"
+keys = ["tab", "tab", "enter"]   # List syntax (preferred for multiple keys)
+
+[[step]]
+type = "delay"
+seconds = 0.5
+
+# Feature #5: Capture with tooltips (enabled by default)
+[[step]]
+type = "capture"
+output = "initial_state"
+# Creates: initial_state.svg, initial_state.txt, initial_state_tooltips.txt
+
+# Feature #4: Modifier keys
+[[step]]
+type = "press"
+keys = ["ctrl+n"]                # Modifier combinations work!
+
+[[step]]
+type = "delay"
+seconds = 1.0
+
+# Feature #5: Capture with custom tooltip selector
+[[step]]
+type = "capture"
+output = "buttons_only"
+tooltip_selector = "Button"      # Only capture button tooltips
+# Creates: buttons_only.svg, buttons_only.txt, buttons_only_tooltips.txt
+
+# Feature #4: Custom pause between keys
+[[step]]
+type = "press"
+keys = ["down", "down", "down"]
+pause_after = 0.3                # Custom timing (default: 0.2s)
+
+# Feature #5: Capture without tooltips
+[[step]]
+type = "capture"
+output = "quick_visual"
+capture_tooltips = false         # Disable tooltips for this capture
+# Creates: quick_visual.svg, quick_visual.txt
+
+# Feature #4: Backwards compatible comma-separated syntax
+[[step]]
+type = "press"
+key = "ctrl+s,ctrl+q"            # Old syntax still works
+
+# Feature #5: Tooltip-only capture (no visual formats)
+[[step]]
+type = "capture"
+output = "metadata_only"
+formats = []                     # No SVG or TXT
+capture_tooltips = true          # Only tooltips
+# Creates: metadata_only_tooltips.txt
+
+# Feature #5: Include widgets without tooltips
+[[step]]
+type = "capture"
+output = "complete_audit"
+tooltip_include_empty = true     # Show all widgets
+# Creates: complete_audit.svg, complete_audit.txt, complete_audit_tooltips.txt
+
+# Combined example: Custom everything
+[[step]]
+type = "press"
+keys = ["shift+tab", "enter"]
+pause_after = 0.4
+
+[[step]]
+type = "capture"
+output = "final_state"
+formats = ["svg"]                # Only SVG
+tooltip_selector = ".important"  # CSS class selector
+tooltip_include_empty = false
+# Creates: final_state.svg, final_state_tooltips.txt
+
+# Dry-run output will show:
+# Configuration: example_features_4_5.toml
+# App: your_app.YourApp
+# Screen: 100x40
+# Output Directory: ./screenshots
+# Default Formats: svg, txt
+# Capture Tooltips: True
+# Tooltip Selector: *
+# 
+# Planned Steps (9 total):
+#   1. press: keys=['tab', 'tab', 'enter']
+#   2. delay: 0.5s
+#   3. capture: output="initial_state", formats=[svg, txt], tooltips=*
+#   4. press: keys=['ctrl+n']
+#   5. delay: 1.0s
+#   6. capture: output="buttons_only", formats=[svg, txt], tooltips=Button
+#   7. press: keys=['down', 'down', 'down'], pause_after=0.3s
+#   8. capture: output="quick_visual", formats=[svg, txt]
+#   9. press: key="ctrl+s,ctrl+q"
+#   10. capture: output="metadata_only", tooltips=*
+#   11. capture: output="complete_audit", formats=[svg, txt], tooltips=*
+#   12. press: keys=['shift+tab', 'enter'], pause_after=0.4s
+#   13. capture: output="final_state", formats=[svg], tooltips=.important

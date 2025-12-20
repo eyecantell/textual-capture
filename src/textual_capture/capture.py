@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,66 @@ logger = logging.getLogger("textual_capture")
 
 # Valid output formats
 VALID_FORMATS = ["svg", "txt"]
+
+
+def _extract_tooltips(app: Any, selector: str, include_empty: bool, capture_name: str) -> str:
+    """
+    Extract tooltips from widgets matching selector.
+
+    Args:
+        app: Textual app instance
+        selector: CSS selector for widgets
+        include_empty: Include widgets without tooltips
+        capture_name: Name of capture (for header)
+
+    Returns:
+        Formatted tooltip data as string
+    """
+    lines = [
+        f"# Tooltips captured from: {capture_name}",
+        f"# Selector: {selector}",
+        f"# Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+    ]
+
+    try:
+        widgets = app.query(selector)
+
+        for widget in widgets:
+            # Get widget identifier
+            widget_type = widget.__class__.__name__
+            widget_id = widget.id or "(no-id)"
+            identifier = f"{widget_type}#{widget_id}"
+
+            # Get tooltip
+            tooltip = getattr(widget, "tooltip", None)
+
+            # Handle Rich renderables
+            if tooltip and not isinstance(tooltip, str):
+                try:
+                    from io import StringIO
+
+                    from rich.console import Console
+
+                    string_io = StringIO()
+                    console = Console(file=string_io, force_terminal=False)
+                    console.print(tooltip)
+                    tooltip = string_io.getvalue().strip()
+                except Exception:
+                    tooltip = "(complex tooltip)"
+
+            # Include or skip empty
+            if tooltip or include_empty:
+                tooltip_text = tooltip or "(no tooltip)"
+                lines.append(f"{identifier}: {tooltip_text}")
+
+        if len(lines) == 4:  # Only header, no widgets
+            lines.append("# No widgets found matching selector")
+
+    except Exception as e:
+        lines.append(f"# Error extracting tooltips: {e}")
+
+    return "\n".join(lines)
 
 
 async def execute_action(
@@ -49,18 +110,26 @@ async def execute_action(
     action_type = action.get("type")
 
     if action_type == "press":
-        keys = action.get("key", "")
-        if not keys:
-            logger.warning("press action has no keys specified")
-            return
+        # Support both 'keys' (list) and 'key' (string) for backwards compatibility
+        keys_list = action.get("keys")
 
-        # Split on commas (README API), strip whitespace
-        for key in keys.split(","):
-            key = key.strip()
-            if key:
-                await pilot.press(key)
-                await pilot.pause(0.2)
-        logger.info(f"Pressed keys: {keys}")
+        if keys_list is None:
+            # Fallback to 'key' field (comma-separated string)
+            key_string = action.get("key", "")
+            if not key_string:
+                logger.warning("press action has no keys specified")
+                return
+            keys_list = [k.strip() for k in key_string.split(",") if k.strip()]
+
+        pause_after = float(action.get("pause_after", 0.2))
+
+        for i, key in enumerate(keys_list):
+            await pilot.press(key)
+            # Pause between keys (not after last key)
+            if i < len(keys_list) - 1:
+                await pilot.pause(pause_after)
+
+        logger.info(f"Pressed keys: {keys_list}")
 
     elif action_type == "delay":
         seconds = float(action.get("seconds", 0.5))
@@ -95,11 +164,28 @@ async def execute_action(
         formats = action.get("formats", config.get("formats", VALID_FORMATS))
 
         # Save each requested format
-        for fmt in formats:
-            file_path = output_dir / f"{output}.{fmt}"
-            pilot.app.save_screenshot(str(file_path))
+        captured_outputs = []
+        if formats:
+            for fmt in formats:
+                file_path = output_dir / f"{output}.{fmt}"
+                pilot.app.save_screenshot(str(file_path))
+            captured_outputs.append(f"formats=[{','.join(formats)}]")
+            logger.info(f"Captured screenshots: {output}.{{{','.join(formats)}}} in {output_dir}")
 
-        logger.info(f"Captured screenshots: {output}.{{{','.join(formats)}}} in {output_dir}")
+        # Capture tooltips if enabled
+        capture_tooltips = action.get("capture_tooltips", config.get("capture_tooltips", True))
+
+        if capture_tooltips:
+            selector = action.get("tooltip_selector", config.get("tooltip_selector", "*"))
+            include_empty = action.get("tooltip_include_empty", config.get("tooltip_include_empty", False))
+
+            tooltip_path = output_dir / f"{output}_tooltips.txt"
+            tooltip_data = _extract_tooltips(pilot.app, selector, include_empty, output)
+            tooltip_path.write_text(tooltip_data)
+            captured_outputs.append("tooltips")
+            logger.info(f"Captured tooltips: {tooltip_path}")
+
+        logger.info(f"Capture '{output}' complete: {' + '.join(captured_outputs)}")
 
     else:
         raise ValueError(f"Unknown action type: {action_type}")
@@ -139,6 +225,16 @@ def validate_config(config: dict[str, Any]) -> None:
         if invalid_formats:
             raise ValueError(f"Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}")
 
+    # Validate tooltip settings (global)
+    if "capture_tooltips" in config and not isinstance(config["capture_tooltips"], bool):
+        raise ValueError("'capture_tooltips' must be a boolean")
+
+    if "tooltip_selector" in config and not isinstance(config["tooltip_selector"], str):
+        raise ValueError("'tooltip_selector' must be a string")
+
+    if "tooltip_include_empty" in config and not isinstance(config["tooltip_include_empty"], bool):
+        raise ValueError("'tooltip_include_empty' must be a boolean")
+
     # Validate action steps
     steps = config.get("step", [])
     for i, step in enumerate(steps):
@@ -154,15 +250,50 @@ def validate_config(config: dict[str, Any]) -> None:
         if step_type == "click" and "label" not in step:
             raise ValueError(f"Step {i}: 'click' action missing required 'label' field")
 
-        # Validate per-step formats if specified
-        if step_type == "capture" and "formats" in step:
-            step_formats = step["formats"]
-            if not isinstance(step_formats, list):
-                raise ValueError(f"Step {i}: 'formats' must be a list, got {type(step_formats).__name__}")
+        # Validate press action
+        if step_type == "press":
+            if "keys" in step and not isinstance(step["keys"], list):
+                raise ValueError(f"Step {i}: 'keys' must be a list")
 
-            invalid_formats = set(step_formats) - set(VALID_FORMATS)
-            if invalid_formats:
-                raise ValueError(f"Step {i}: Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}")
+            if "pause_after" in step:
+                try:
+                    float(step["pause_after"])
+                except (TypeError, ValueError):
+                    raise ValueError(f"Step {i}: 'pause_after' must be a number")
+
+        # Validate capture action
+        if step_type == "capture":
+            # Validate per-step formats if specified
+            if "formats" in step:
+                step_formats = step["formats"]
+                if not isinstance(step_formats, list):
+                    raise ValueError(f"Step {i}: 'formats' must be a list, got {type(step_formats).__name__}")
+
+                invalid_formats = set(step_formats) - set(VALID_FORMATS)
+                if invalid_formats:
+                    raise ValueError(
+                        f"Step {i}: Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}"
+                    )
+
+            # Validate per-step tooltip settings
+            if "capture_tooltips" in step and not isinstance(step["capture_tooltips"], bool):
+                raise ValueError(f"Step {i}: 'capture_tooltips' must be a boolean")
+
+            if "tooltip_selector" in step and not isinstance(step["tooltip_selector"], str):
+                raise ValueError(f"Step {i}: 'tooltip_selector' must be a string")
+
+            if "tooltip_include_empty" in step and not isinstance(step["tooltip_include_empty"], bool):
+                raise ValueError(f"Step {i}: 'tooltip_include_empty' must be a boolean")
+
+            # Require at least one output
+            formats = step.get("formats", config.get("formats", VALID_FORMATS))
+            capture_tooltips = step.get("capture_tooltips", config.get("capture_tooltips", True))
+
+            if not formats and not capture_tooltips:
+                raise ValueError(
+                    f"Step {i}: capture must produce at least one output. "
+                    f"Either specify formats or enable capture_tooltips"
+                )
 
 
 def dry_run(config: dict[str, Any], toml_path: str) -> None:
@@ -178,6 +309,9 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
     print(f"Screen: {config.get('screen_width', 80)}x{config.get('screen_height', 40)}")
     print(f"Output Directory: {config.get('output_dir', '.')}")
     print(f"Default Formats: {', '.join(config.get('formats', VALID_FORMATS))}")
+    print(f"Capture Tooltips: {config.get('capture_tooltips', True)}")
+    if config.get("capture_tooltips", True):
+        print(f"Tooltip Selector: {config.get('tooltip_selector', '*')}")
     print(f"Initial Delay: {config.get('initial_delay', 1.0)}s")
     print(f"Scroll to Top: {config.get('scroll_to_top', True)}")
 
@@ -190,25 +324,46 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         details = []
 
         if step_type == "press":
-            details.append(f'keys="{step.get("key", "")}"')
+            # Show keys (list or string)
+            keys = step.get("keys")
+            if keys:
+                details.append(f"keys={keys}")
+            else:
+                details.append(f'key="{step.get("key", "")}"')
+
+            pause_after = step.get("pause_after")
+            if pause_after is not None and pause_after != 0.2:
+                details.append(f"pause_after={pause_after}s")
+
         elif step_type == "delay":
             details.append(f"{step.get('seconds', 0.5)}s")
+
         elif step_type == "click":
             details.append(f'label="{step.get("label", "")}"')
+
         elif step_type == "capture":
             output = step.get("output")
             if not output:
                 capture_counter += 1
                 output = f"capture_{capture_counter:03d}"
+
             formats = step.get("formats", config.get("formats", VALID_FORMATS))
+            capture_tooltips = step.get("capture_tooltips", config.get("capture_tooltips", True))
+
             details.append(f'output="{output}"')
-            details.append(f"formats=[{', '.join(formats)}]")
+
+            if formats:
+                details.append(f"formats=[{', '.join(formats)}]")
+
+            if capture_tooltips:
+                selector = step.get("tooltip_selector", config.get("tooltip_selector", "*"))
+                details.append(f"tooltips={selector}")
 
         detail_str = ", ".join(details) if details else ""
         print(f"  {i}. {step_type}: {detail_str}")
 
     # Test dynamic import (without running)
-    print("\nValidating module import...")
+    print(f"\nValidating module import...")
     try:
         module_path = config.get("module_path")
         if module_path:
@@ -218,7 +373,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         app_class_name = config["app_class"]
 
         module = __import__(app_module, fromlist=[app_class_name])
-        getattr(module, app_class_name)
+        AppClass = getattr(module, app_class_name)
         print(f"✓ Successfully imported {app_class_name} from {app_module}")
     except ImportError as e:
         print(f"✗ Import failed: {e}")
