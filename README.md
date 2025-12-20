@@ -21,6 +21,106 @@ Unlike single-shot tools, `textual-capture` supports **multi-step sequences** de
 
 ---
 
+### Keyboard Navigation and Modifiers
+
+**Advanced key press control with list syntax and modifiers:**
+
+```toml
+# List syntax (preferred for multiple keys)
+[[step]]
+type = "press"
+keys = ["tab", "tab", "enter"]
+
+# Modifier combinations
+[[step]]
+type = "press"
+keys = ["ctrl+s"]           # Save shortcut
+
+# Multiple modifiers
+[[step]]
+type = "press"
+keys = ["ctrl+shift+p"]     # Command palette
+
+# Custom timing between keys
+[[step]]
+type = "press"
+keys = ["down", "down", "down"]
+pause_after = 0.3           # Wait 0.3s between each key (default: 0.2s)
+
+# Legacy comma-separated syntax (still supported)
+[[step]]
+type = "press"
+key = "tab,ctrl+c,ctrl+v"
+```
+
+**Supported modifiers**: `ctrl+`, `shift+`, `alt+`, `meta+`
+
+---
+
+### Capture Tooltips
+
+**Tooltips are automatically captured with every screenshot** (enabled by default). This creates a `{name}_tooltips.txt` file alongside your SVG and text captures.
+
+```toml
+# Basic capture (tooltips enabled by default)
+[[step]]
+type = "capture"
+output = "dashboard"
+# Creates: dashboard.svg, dashboard.txt, dashboard_tooltips.txt
+
+# Disable tooltips for a specific capture
+[[step]]
+type = "capture"
+output = "quick_visual"
+capture_tooltips = false
+
+# Disable tooltips globally
+capture_tooltips = false
+
+# Capture only specific widgets
+[[step]]
+type = "capture"
+output = "button_tooltips"
+tooltip_selector = "Button"    # Only capture Button widgets
+
+# Include widgets without tooltips
+[[step]]
+type = "capture"
+output = "complete_audit"
+tooltip_include_empty = true   # Show "(no tooltip)" for widgets without tooltips
+```
+
+**Tooltip file format:**
+```
+# Tooltips captured from: dashboard
+# Selector: *
+# Timestamp: 2025-12-20 10:30:45
+
+Button#run: Start the selected command
+Button#cancel: Abort current operation (Esc)
+Input#search: Search for items
+Label#status: (no tooltip)
+```
+
+**Tooltip-only captures** (skip visual rendering for speed):
+```toml
+formats = []              # Don't generate SVG or TXT
+capture_tooltips = true
+
+[[step]]
+type = "capture"
+output = "metadata_only"
+# Creates only: metadata_only_tooltips.txt
+```
+
+**Use cases:**
+- **LLM UI review**: Text format perfect for AI analysis
+- **Accessibility audits**: Verify all interactive elements have tooltips
+- **Documentation**: Capture help text alongside visuals
+- **Testing**: Validate tooltip content programmatically
+
+---
+
 ### Installation
 
 ```bash
@@ -139,10 +239,17 @@ module_path = "path/to/modules"    # Add to sys.path for imports (optional)
 output_dir = "./screenshots"       # Directory for all captures (default: ".")
 formats = ["svg", "txt"]           # Default formats (default: ["svg", "txt"])
 
+# Tooltip configuration
+capture_tooltips = true            # Capture tooltips with screenshots (default: true)
+tooltip_selector = "*"             # CSS selector for widgets (default: "*" = all)
+tooltip_include_empty = false      # Include widgets without tooltips (default: false)
+
 # Action steps
 [[step]]
 type = "press"                     # Press keyboard keys
-key = "tab,down,enter"             # Comma-separated keys
+key = "tab,down,enter"             # Comma-separated keys (legacy)
+keys = ["tab", "ctrl+s"]           # List syntax (preferred for multiple keys)
+pause_after = 0.2                  # Seconds between keys (default: 0.2)
 
 [[step]]
 type = "click"                     # Click a button
@@ -154,8 +261,10 @@ seconds = 1.5                      # Seconds to wait
 
 [[step]]
 type = "capture"                   # Take screenshot
-output = "my_state"                # Optional: custom name (saves my_state.svg + .txt)
+output = "my_state"                # Optional: custom name (saves my_state.svg + .txt + _tooltips.txt)
 formats = ["svg"]                  # Optional: override global formats for this capture
+capture_tooltips = true            # Optional: override global tooltip setting
+tooltip_selector = "Button"        # Optional: custom selector for this capture
                                    # If output omitted: auto-generates capture_001.svg, etc.
 ```
 
@@ -304,26 +413,66 @@ type = "capture"
 #### LLM-Driven Analysis
 ```toml
 output_dir = "./llm_review"
-formats = ["txt"]  # Text only for programmatic review
+formats = ["txt"]           # Text representation
+capture_tooltips = true     # Plus tooltips
 
 [[step]]
 type = "press"
-key = "tab,enter"
+keys = ["tab", "enter"]
 
 [[step]]
 type = "capture"
 # Creates text files LLMs can easily analyze
 ```
 
+#### Tooltip-Only Audit
+```toml
+output_dir = "./tooltip_audit"
+formats = []                     # Skip visual rendering
+capture_tooltips = true
+tooltip_include_empty = true     # Show all widgets
+
+[[step]]
+type = "capture"
+output = "all_tooltips"
+# Fast metadata extraction: all_tooltips_tooltips.txt
+```
+
 #### Complete Documentation
 ```toml
 output_dir = "./screenshots"
-formats = ["svg", "txt"]  # Default: both formats
+formats = ["svg", "txt"]     # Default: both formats
+capture_tooltips = true      # Plus tooltips
 
 [[step]]
 type = "capture"
 output = "feature_demo"
-# Full documentation with visual and text representations
+# Full documentation: SVG + TXT + tooltips
+```
+
+#### Keyboard Shortcut Testing
+```toml
+# Test complex keyboard workflows
+[[step]]
+type = "press"
+keys = ["ctrl+n"]           # New file
+
+[[step]]
+type = "delay"
+seconds = 0.5
+
+[[step]]
+type = "press"
+keys = ["t", "e", "s", "t"]
+pause_after = 0.1           # Slow typing
+
+[[step]]
+type = "press"
+keys = ["ctrl+s"]           # Save
+
+[[step]]
+type = "capture"
+output = "after_save"
 ```
 
 ---
