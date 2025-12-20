@@ -123,13 +123,13 @@ async def execute_action(
                 return
             keys_list = [k.strip() for k in key_string.split(",") if k.strip()]
 
-        pause_after = float(action.get("pause_after", 0.2))
+        pause_between = float(action.get("pause_between", 0.2))
 
         for i, key in enumerate(keys_list):
             await pilot.press(key)
             # Pause between keys (not after last key)
             if i < len(keys_list) - 1:
-                await pilot.pause(pause_after)
+                await pilot.pause(pause_between)
 
         logger.info(f"Pressed keys: {keys_list}")
 
@@ -257,11 +257,11 @@ def validate_config(config: dict[str, Any]) -> None:
             if "keys" in step and not isinstance(step["keys"], list):
                 raise ValueError(f"Step {i}: 'keys' must be a list")
 
-            if "pause_after" in step:
+            if "pause_between" in step:
                 try:
-                    float(step["pause_after"])
+                    float(step["pause_between"])
                 except (TypeError, ValueError) as e:
-                    raise ValueError(f"Step {i}: 'pause_after' must be a number") from e
+                    raise ValueError(f"Step {i}: 'pause_between' must be a number") from e
 
         # Validate capture action
         if step_type == "capture":
@@ -333,9 +333,9 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
             else:
                 details.append(f'key="{step.get("key", "")}"')
 
-            pause_after = step.get("pause_after")
-            if pause_after is not None and pause_after != 0.2:
-                details.append(f"pause_after={pause_after}s")
+            pause_between = step.get("pause_between")
+            if pause_between is not None and pause_between != 0.2:
+                details.append(f"pause_between={pause_between}s")
 
         elif step_type == "delay":
             details.append(f"{step.get('seconds', 0.5)}s")

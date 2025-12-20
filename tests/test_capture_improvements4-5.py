@@ -11,6 +11,7 @@ from textual_capture.capture import capture, execute_action, validate_config
 logger = logging.getLogger(__name__)
 logging.getLogger("textual_capture").setLevel(logging.DEBUG)
 
+
 class TestKeyModifiers:
     """Tests for Feature #4: Key Modifier Combinations."""
 
@@ -54,21 +55,21 @@ class TestKeyModifiers:
         calls = [call[0][0] for call in pilot.press.call_args_list]
         assert calls == ["tab", "ctrl+s", "enter"]
 
-    async def test_press_pause_after_custom(self):
-        """Press action with custom pause_after duration."""
+    async def test_press_pause_between_custom(self):
+        """Press action with custom pause_between duration."""
         pilot = Mock()
         pilot.press = AsyncMock()
         pilot.pause = AsyncMock()
 
-        action = {"type": "press", "keys": ["tab", "tab"], "pause_after": 0.5}
+        action = {"type": "press", "keys": ["tab", "tab"], "pause_between": 0.5}
         config = {}
         await execute_action(pilot, action, config, {"count": 0})
 
         # Should pause with custom duration between keys
         pilot.pause.assert_called_once_with(0.5)
 
-    async def test_press_pause_after_default(self):
-        """Press action uses default pause_after (0.2s)."""
+    async def test_press_pause_between_default(self):
+        """Press action uses default pause_between (0.2s)."""
         pilot = Mock()
         pilot.press = AsyncMock()
         pilot.pause = AsyncMock()
@@ -80,7 +81,7 @@ class TestKeyModifiers:
         # Should pause with default 0.2s between keys
         pilot.pause.assert_called_once_with(0.2)
 
-    async def test_press_no_pause_after_last_key(self):
+    async def test_press_no_pause_between_last_key(self):
         """Press action doesn't pause after the last key."""
         pilot = Mock()
         pilot.press = AsyncMock()
@@ -117,15 +118,15 @@ class TestKeyModifiers:
         with pytest.raises(ValueError, match="'keys' must be a list"):
             validate_config(config)
 
-    def test_validate_pause_after_must_be_numeric(self):
-        """Validation fails if 'pause_after' is not numeric."""
+    def test_validate_pause_between_must_be_numeric(self):
+        """Validation fails if 'pause_between' is not numeric."""
         config = {
             "app_module": "test",
             "app_class": "Test",
-            "step": [{"type": "press", "key": "tab", "pause_after": "not-a-number"}],
+            "step": [{"type": "press", "key": "tab", "pause_between": "not-a-number"}],
         }
 
-        with pytest.raises(ValueError, match="'pause_after' must be a number"):
+        with pytest.raises(ValueError, match="'pause_between' must be a number"):
             validate_config(config)
 
 
@@ -460,8 +461,8 @@ keys = ["tab", "ctrl+s"]
         captured = capsys.readouterr()
         assert "keys=['tab', 'ctrl+s']" in captured.out
 
-    def test_dry_run_shows_pause_after(self, tmp_path: Path, capsys):
-        """Dry-run displays custom pause_after."""
+    def test_dry_run_shows_pause_between(self, tmp_path: Path, capsys):
+        """Dry-run displays custom pause_between."""
         toml_content = """
 app_module = "tests.conftest"
 app_class = "SimpleTestApp"
@@ -469,7 +470,7 @@ app_class = "SimpleTestApp"
 [[step]]
 type = "press"
 keys = ["tab"]
-pause_after = 0.5
+pause_between = 0.5
 """
         toml_file = tmp_path / "config.toml"
         toml_file.write_text(toml_content)
@@ -484,7 +485,7 @@ pause_after = 0.5
 
         assert exc_info.value.code == 0
         captured = capsys.readouterr()
-        assert "pause_after=0.5s" in captured.out
+        assert "pause_between=0.5s" in captured.out
 
     def test_dry_run_shows_tooltip_settings(self, tmp_path: Path, capsys):
         """Dry-run displays tooltip configuration."""

@@ -8,7 +8,7 @@
 **Changes**:
 - Added support for `keys` field (list syntax) alongside existing `key` (string)
 - `keys` takes precedence if both present (backwards compatible)
-- Added `pause_after` field to customize timing between key presses (default: 0.2s)
+- Added `pause_between` field to customize timing between key presses (default: 0.2s)
 - Pause only applied between keys, not after last key
 - Full support for modifier keys: `ctrl+`, `shift+`, `alt+`, etc.
 
@@ -33,7 +33,7 @@ key = "tab,ctrl+s,enter"
 [[step]]
 type = "press"
 keys = ["tab", "tab"]
-pause_after = 0.5  # Override default 0.2s
+pause_between = 0.5  # Override default 0.2s
 ```
 
 **Benefits**:
@@ -141,11 +141,11 @@ Label#status: (no tooltip)
 - ✅ List syntax works
 - ✅ Backwards compatible with string syntax
 - ✅ Backwards compatible with comma-separated
-- ✅ Custom pause_after
-- ✅ Default pause_after (0.2s)
+- ✅ Custom pause_between
+- ✅ Default pause_between (0.2s)
 - ✅ No pause after last key
 - ✅ keys precedence over key
-- ✅ Validation (keys must be list, pause_after must be numeric)
+- ✅ Validation (keys must be list, pause_between must be numeric)
 
 ### Feature #5 Tests (17 tests)
 - ✅ Enabled by default
@@ -163,7 +163,7 @@ Label#status: (no tooltip)
 
 ### Dry-Run Tests (5 tests)
 - ✅ Shows keys list
-- ✅ Shows pause_after
+- ✅ Shows pause_between
 - ✅ Shows tooltip settings
 - ✅ Shows tooltips in capture steps
 - ✅ Shows tooltip-only captures
@@ -183,13 +183,13 @@ Label#status: (no tooltip)
 **All existing TOML files work unchanged**:
 - `key` field still works (string syntax)
 - Comma-separated keys still work
-- Default `pause_after` is 0.2s (same as before)
+- Default `pause_between` is 0.2s (same as before)
 - Tooltips enabled by default (non-breaking - just adds files)
 - All existing tests pass with minimal updates (add `config` param)
 
 **New features are opt-in**:
 - `keys` list syntax is preferred but optional
-- `pause_after` only used if specified
+- `pause_between` only used if specified
 - `capture_tooltips = false` disables tooltip capture
 - `formats = []` is opt-in for tooltip-only mode
 
@@ -206,7 +206,7 @@ app_class = "MyApp"
 [[step]]
 type = "press"
 keys = ["tab", "tab", "tab"]
-pause_after = 0.3
+pause_between = 0.3
 
 # Use keyboard shortcut
 [[step]]
@@ -308,7 +308,7 @@ seconds = 0.5
 [[step]]
 type = "press"
 keys = ["t", "e", "s", "t"]
-pause_after = 0.1  # Slow typing
+pause_between = 0.1  # Slow typing
 
 # Save
 [[step]]

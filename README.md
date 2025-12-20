@@ -195,7 +195,7 @@ seconds = 0.5
 [[step]]
 type = "press"
 keys = ["t", "e", "s", "t"]
-pause_after = 0.1           # Slow typing
+pause_between = 0.1           # Slow typing
 
 [[step]]
 type = "press"
@@ -248,7 +248,7 @@ tooltip_include_empty = false      # Show widgets without tooltips (default: fal
 [[step]]
 type = "press"
 keys = ["tab", "ctrl+s", "enter"]  # List syntax (preferred)
-pause_after = 0.2                  # Seconds between keys (default: 0.2)
+pause_between = 0.2                  # Seconds between keys (default: 0.2)
 
 # Legacy comma-separated syntax still works
 key = "tab,ctrl+s,enter"
@@ -443,7 +443,7 @@ output = "settings_tooltips"
 3. Reads: `settings_tooltips_tooltips.txt`
 4. Reports: *"Found 3 buttons without tooltips: Button#apply, Button#reset, Button#advanced"*
 
-**Pro tip**: Copy `CLAUDE_SNIPPET.md` into your project's `CLAUDE.md` file to give Claude Code full context.
+**Pro tip**: Copy `LLM_INSTRUCTIONS.md` into your project's `CLAUDE.md` file to give Claude Code full context.
 
 ---
 

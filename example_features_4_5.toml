@@ -53,7 +53,7 @@ tooltip_selector = "Button"      # Only capture button tooltips
 [[step]]
 type = "press"
 keys = ["down", "down", "down"]
-pause_after = 0.3                # Custom timing (default: 0.2s)
+pause_between = 0.3                # Custom timing (default: 0.2s)
 
 # Feature #5: Capture without tooltips
 [[step]]
@@ -86,7 +86,7 @@ tooltip_include_empty = true     # Show all widgets
 [[step]]
 type = "press"
 keys = ["shift+tab", "enter"]
-pause_after = 0.4
+pause_between = 0.4
 
 [[step]]
 type = "capture"
@@ -112,10 +112,10 @@ tooltip_include_empty = false
 #   4. press: keys=['ctrl+n']
 #   5. delay: 1.0s
 #   6. capture: output="buttons_only", formats=[svg, txt], tooltips=Button
-#   7. press: keys=['down', 'down', 'down'], pause_after=0.3s
+#   7. press: keys=['down', 'down', 'down'], pause_between=0.3s
 #   8. capture: output="quick_visual", formats=[svg, txt]
 #   9. press: key="ctrl+s,ctrl+q"
 #   10. capture: output="metadata_only", tooltips=*
 #   11. capture: output="complete_audit", formats=[svg, txt], tooltips=*
-#   12. press: keys=['shift+tab', 'enter'], pause_after=0.4s
+#   12. press: keys=['shift+tab', 'enter'], pause_between=0.4s
 #   13. capture: output="final_state", formats=[svg], tooltips=.important
