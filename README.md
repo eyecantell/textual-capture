@@ -8,118 +8,17 @@
 [![Coverage](https://codecov.io/gh/eyecantell/textual-capture/graph/badge.svg)](https://codecov.io/gh/eyecantell/textual-capture)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-`textual-capture` lets you define **reproducible sequences** of interactions (key presses, clicks, delays) in your Textual apps and automatically capture **multiple SVG + text snapshots** at key moments.
+`textual-capture` automates UI interactions in your Textual apps and captures screenshots at key moments. Define sequences of key presses, clicks, and delays in simple TOML files.
 
 Perfect for:
-- **🤖 LLM-driven TUI review and testing** (primary use case!)
-- Creating consistent documentation screenshots
-- Building demos and tutorials
-- Generating "before/after" visuals for READMEs
-- Visual regression prep (pair with snapshot testing)
-
-Unlike single-shot tools, `textual-capture` supports **multi-step sequences** defined in clean, readable TOML files.
+- 🤖 **LLM-driven TUI review and testing** (AI can generate configs and analyze output)
+- 📸 **Documentation screenshots** (consistent, reproducible captures)
+- 🎬 **Demo creation** (step-through your app automatically)
+- ✅ **Visual regression prep** (capture baseline states)
 
 ---
 
-### Keyboard Navigation and Modifiers
-
-**Advanced key press control with list syntax and modifiers:**
-
-```toml
-# List syntax (preferred for multiple keys)
-[[step]]
-type = "press"
-keys = ["tab", "tab", "enter"]
-
-# Modifier combinations
-[[step]]
-type = "press"
-keys = ["ctrl+s"]           # Save shortcut
-
-# Multiple modifiers
-[[step]]
-type = "press"
-keys = ["ctrl+shift+p"]     # Command palette
-
-# Custom timing between keys
-[[step]]
-type = "press"
-keys = ["down", "down", "down"]
-pause_after = 0.3           # Wait 0.3s between each key (default: 0.2s)
-
-# Legacy comma-separated syntax (still supported)
-[[step]]
-type = "press"
-key = "tab,ctrl+c,ctrl+v"
-```
-
-**Supported modifiers**: `ctrl+`, `shift+`, `alt+`, `meta+`
-
----
-
-### Capture Tooltips
-
-**Tooltips are automatically captured with every screenshot** (enabled by default). This creates a `{name}_tooltips.txt` file alongside your SVG and text captures.
-
-```toml
-# Basic capture (tooltips enabled by default)
-[[step]]
-type = "capture"
-output = "dashboard"
-# Creates: dashboard.svg, dashboard.txt, dashboard_tooltips.txt
-
-# Disable tooltips for a specific capture
-[[step]]
-type = "capture"
-output = "quick_visual"
-capture_tooltips = false
-
-# Disable tooltips globally
-capture_tooltips = false
-
-# Capture only specific widgets
-[[step]]
-type = "capture"
-output = "button_tooltips"
-tooltip_selector = "Button"    # Only capture Button widgets
-
-# Include widgets without tooltips
-[[step]]
-type = "capture"
-output = "complete_audit"
-tooltip_include_empty = true   # Show "(no tooltip)" for widgets without tooltips
-```
-
-**Tooltip file format:**
-```
-# Tooltips captured from: dashboard
-# Selector: *
-# Timestamp: 2025-12-20 10:30:45
-
-Button#run: Start the selected command
-Button#cancel: Abort current operation (Esc)
-Input#search: Search for items
-Label#status: (no tooltip)
-```
-
-**Tooltip-only captures** (skip visual rendering for speed):
-```toml
-formats = []              # Don't generate SVG or TXT
-capture_tooltips = true
-
-[[step]]
-type = "capture"
-output = "metadata_only"
-# Creates only: metadata_only_tooltips.txt
-```
-
-**Use cases:**
-- **LLM UI review**: Text format perfect for AI analysis
-- **Accessibility audits**: Verify all interactive elements have tooltips
-- **Documentation**: Capture help text alongside visuals
-- **Testing**: Validate tooltip content programmatically
-
----
+## Quick Start
 
 ### Installation
 
@@ -127,294 +26,126 @@ output = "metadata_only"
 pip install textual-capture
 ```
 
-Or with PDM:
-```bash
-pdm add textual-capture
-```
+### Your First Capture
 
----
-
-### Quick Example
-
-Create a file called `demo_sequence.toml` next to your app:
+Create `demo.toml`:
 
 ```toml
 app_module = "my_app"
-app_class = "MyTextualApp"
-screen_width = 90
-screen_height = 40
+app_class = "MyApp"
 
 [[step]]
 type = "press"
-key = "tab,tab,enter"
+keys = ["tab", "tab", "enter"]
+
+[[step]]
+type = "capture"
+output = "my_screenshot"
+```
+
+Run it:
+
+```bash
+textual-capture demo.toml
+```
+
+This creates:
+- `my_screenshot.svg` (visual)
+- `my_screenshot.txt` (text representation)
+- `my_screenshot_tooltips.txt` (widget tooltips)
+
+---
+
+## Core Features
+
+### Multi-Step Sequences
+Chain actions together:
+```toml
+[[step]]
+type = "press"
+keys = ["ctrl+n"]         # Open new dialog
 
 [[step]]
 type = "delay"
-seconds = 2.0
+seconds = 0.5             # Wait for animation
 
 [[step]]
-type = "capture"
-output = "running_state"
+type = "click"
+label = "Submit"          # Click button
 
 [[step]]
-type = "press"
-key = "q"
+type = "capture"          # Take screenshot
 ```
-
-Then run:
-
-```bash
-textual-capture demo_sequence.toml           # Default: quiet mode
-textual-capture demo_sequence.toml --verbose # Show all actions
-textual-capture demo_sequence.toml --quiet   # Errors only
-textual-capture demo_sequence.toml --dry-run # Validate without executing
-```
-
-This will:
-- Launch your app in test mode
-- Press Tab twice, then Enter
-- Wait 2 seconds
-- Save `running_state.svg` and `running_state.txt`
-- Press `q` to quit cleanly
-
----
-
-### 🤖 LLM-Driven TUI Review
-
-**Primary Use Case**: Enable AI assistants like Claude Code to review and test your TUI applications by capturing screenshots at different states.
-
-**When working with an LLM on a Textual app, the LLM can:**
-- Generate TOML configurations on the fly to capture specific UI states
-- Automatically verify UI layout changes after code modifications
-- Review button placement, labels, and visual hierarchy from text output
-- Test interaction sequences without manual intervention
-
-**Example workflow:**
-```
-User: "I just added a new settings dialog. Can you check if it looks good?"
-LLM:  Creates llm_review.toml → Runs textual-capture → Analyzes .txt output →
-      Reports: "Settings dialog opens correctly, but Cancel button is off-screen..."
-```
-
-See `examples/llm_review.toml` for a template AI assistants can adapt.
-
-**Claude Code Integration**: Copy `CLAUDE_SNIPPET.md` into your project's `CLAUDE.md` to give Claude Code full context on using textual-capture for your TUI app.
-
----
-
-### Why textual-capture?
-
-| Feature                        | textual-dev screenshot | pytest-textual-snapshot | **textual-capture** |
-|-------------------------------|-------------------------|--------------------------|---------------------|
-| Single capture                | Yes                     | Yes                      | Yes                 |
-| Multi-step interaction sequences | No                      | No                       | Yes                 |
-| Click buttons by label        | No                      | No                       | Yes                 |
-| Delays between actions        | No                      | No                       | Yes                 |
-| Multiple timed captures       | No                      | No                       | Yes                 |
-| Human-readable config (TOML)  | No                      | No                       | Yes                 |
-| Dry-run validation            | No                      | No                       | Yes                 |
-| Configurable output directory | No                      | No                       | Yes                 |
-| Selective format generation   | No                      | No                       | Yes                 |
-| Works with any Textual app    | Yes                     | Yes                      | Yes                 |
-
----
-
-### Configuration Options
-
-In your `.toml` file:
-
-```toml
-# Required fields
-app_module = "path.to.module"      # Module containing your Textual app
-app_class = "MyApp"                # Textual App class name
-
-# Optional configuration
-screen_width = 100                 # Terminal width (default: 80)
-screen_height = 40                 # Terminal height (default: 40)
-initial_delay = 1.0                # Wait before first action (default: 1.0)
-scroll_to_top = true               # Press "home" at start (default: true)
-module_path = "path/to/modules"    # Add to sys.path for imports (optional)
-
-# Output configuration
-output_dir = "./screenshots"       # Directory for all captures (default: ".")
-formats = ["svg", "txt"]           # Default formats (default: ["svg", "txt"])
-
-# Tooltip configuration
-capture_tooltips = true            # Capture tooltips with screenshots (default: true)
-tooltip_selector = "*"             # CSS selector for widgets (default: "*" = all)
-tooltip_include_empty = false      # Include widgets without tooltips (default: false)
-
-# Action steps
-[[step]]
-type = "press"                     # Press keyboard keys
-key = "tab,down,enter"             # Comma-separated keys (legacy)
-keys = ["tab", "ctrl+s"]           # List syntax (preferred for multiple keys)
-pause_after = 0.2                  # Seconds between keys (default: 0.2)
-
-[[step]]
-type = "click"                     # Click a button
-label = "Run Selected"             # Button text (spaces removed for ID)
-
-[[step]]
-type = "delay"                     # Pause for timing
-seconds = 1.5                      # Seconds to wait
-
-[[step]]
-type = "capture"                   # Take screenshot
-output = "my_state"                # Optional: custom name (saves my_state.svg + .txt + _tooltips.txt)
-formats = ["svg"]                  # Optional: override global formats for this capture
-capture_tooltips = true            # Optional: override global tooltip setting
-tooltip_selector = "Button"        # Optional: custom selector for this capture
-                                   # If output omitted: auto-generates capture_001.svg, etc.
-```
-
----
-
-### Output Organization
-
-**Organize captures with `output_dir`:**
-
-```toml
-# Keep your project root clean
-output_dir = "./screenshots"
-
-[[step]]
-type = "capture"
-output = "dashboard"
-```
-
-Result: Creates `./screenshots/dashboard.svg` and `./screenshots/dashboard.txt`
-
-The output directory is created automatically if it doesn't exist, including any parent directories.
-
----
-
-### Selective Format Generation
-
-**Control which formats are generated:**
-
-```toml
-# Global default - applies to all captures
-formats = ["svg"]  # Only generate SVG files
-
-[[step]]
-type = "capture"
-output = "quick_check"
-# Uses global setting: svg only
-
-[[step]]
-type = "capture"
-output = "detailed_view"
-formats = ["svg", "txt"]  # Override: generate both for this capture
-```
-
-**Valid formats**: `svg`, `txt`
-
-**Use cases:**
-- **SVG only** (`formats = ["svg"]`): Faster execution, visual documentation
-- **TXT only** (`formats = ["txt"]`): LLM review workflows, automated analysis
-- **Both** (`formats = ["svg", "txt"]`): Complete documentation (default)
-
-**Benefits:**
-- ~50% faster when using single format
-- Reduces file clutter
-- Optimizes for specific workflows (visual vs. programmatic review)
-
----
-
-### Dry-Run Validation
-
-**Validate configurations without executing:**
-
-```bash
-textual-capture sequence.toml --dry-run
-```
-
-Output shows:
-- Configuration summary
-- Planned execution steps with details
-- Auto-generated capture names
-- Module import validation
-- Success/failure status
-
-**Example output:**
-```
-Configuration: demo_sequence.toml
-App: my_app.MyApp
-Screen: 90x40
-Output Directory: ./screenshots
-Default Formats: svg, txt
-Initial Delay: 2.0s
-Scroll to Top: True
-
-Planned Steps (4 total):
-  1. press: keys="tab,tab,enter"
-  2. delay: 2.0s
-  3. capture: output="running_state", formats=[svg, txt]
-  4. press: keys="q"
-
-Validating module import...
-✓ Successfully imported MyApp from my_app
-
-✓ Configuration valid and ready to execute
-```
-
-**Use dry-run for:**
-- Debugging complex sequences
-- CI/CD validation pipelines
-- Sharing sequences with others or LLMs
-- Quick syntax checking
-
----
 
 ### Auto-Sequencing
-
-**Omit the `output` field to automatically generate sequential filenames:**
-
+Omit output names for automatic numbering:
 ```toml
 [[step]]
 type = "capture"
-# Auto-generates: capture_001.svg, capture_001.txt
+# Creates: capture_001.svg, capture_001.txt, capture_001_tooltips.txt
 
 [[step]]
 type = "press"
-key = "down"
+keys = ["down"]
 
 [[step]]
 type = "capture"
-# Auto-generates: capture_002.svg, capture_002.txt
-
-[[step]]
-type = "capture"
-output = "named_state"
-# Uses explicit name: named_state.svg, named_state.txt
-
-[[step]]
-type = "capture"
-# Auto-generates: capture_003.svg, capture_003.txt (counter continues)
+# Creates: capture_002.svg, capture_002.txt, capture_002_tooltips.txt
 ```
 
-Mix and match named and auto-sequenced captures as needed!
+### Keyboard Shortcuts
+Full modifier support:
+```toml
+[[step]]
+type = "press"
+keys = ["ctrl+s", "ctrl+shift+p", "alt+f4"]
+```
+
+### Smart Tooltips
+Tooltips captured automatically with every screenshot (opt-out if not needed):
+```toml
+# Enabled by default - just works!
+[[step]]
+type = "capture"
+
+# Disable if not needed
+[[step]]
+type = "capture"
+capture_tooltips = false
+
+# Capture only tooltips (fast!)
+[[step]]
+type = "capture"
+formats = []              # Skip SVG/TXT
+capture_tooltips = true
+```
+
+### Organized Output
+```toml
+output_dir = "./screenshots"   # All files go here
+formats = ["svg"]              # Only generate SVG (faster)
+```
+
+### Validation
+Check your config before running:
+```bash
+textual-capture demo.toml --dry-run
+```
+
+Shows planned steps, validates imports, catches errors.
 
 ---
 
-### Common Workflows
+## Common Use Cases
 
-#### Fast Visual Documentation
+### Documentation Screenshots
 ```toml
 output_dir = "./docs/screenshots"
-formats = ["svg"]  # Visual only, 50% faster
+formats = ["svg"]
 
 [[step]]
 type = "capture"
-# Quick captures without text overhead
-```
-
-#### LLM-Driven Analysis
-```toml
-output_dir = "./llm_review"
-formats = ["txt"]           # Text representation
-capture_tooltips = true     # Plus tooltips
+output = "main_menu"
 
 [[step]]
 type = "press"
@@ -422,40 +153,40 @@ keys = ["tab", "enter"]
 
 [[step]]
 type = "capture"
-# Creates text files LLMs can easily analyze
+output = "settings_dialog"
 ```
 
-#### Tooltip-Only Audit
+### LLM UI Analysis
 ```toml
-output_dir = "./tooltip_audit"
-formats = []                     # Skip visual rendering
+output_dir = "./llm_review"
+formats = ["txt"]           # Text for AI analysis
+capture_tooltips = true     # Include tooltip data
+
+[[step]]
+type = "capture"
+# AI can read the text files and tooltips
+```
+
+Then: `cat llm_review/*.txt | claude analyze-ui`
+
+### Accessibility Audit
+```toml
+formats = []                     # Skip visuals
 capture_tooltips = true
-tooltip_include_empty = true     # Show all widgets
+tooltip_include_empty = true     # Show missing tooltips
 
 [[step]]
 type = "capture"
-output = "all_tooltips"
-# Fast metadata extraction: all_tooltips_tooltips.txt
+output = "tooltip_audit"
 ```
 
-#### Complete Documentation
-```toml
-output_dir = "./screenshots"
-formats = ["svg", "txt"]     # Default: both formats
-capture_tooltips = true      # Plus tooltips
+Review `tooltip_audit_tooltips.txt` for widgets with `(no tooltip)`.
 
-[[step]]
-type = "capture"
-output = "feature_demo"
-# Full documentation: SVG + TXT + tooltips
-```
-
-#### Keyboard Shortcut Testing
+### Keyboard Workflow Testing
 ```toml
-# Test complex keyboard workflows
 [[step]]
 type = "press"
-keys = ["ctrl+n"]           # New file
+keys = ["ctrl+o"]           # Open file
 
 [[step]]
 type = "delay"
@@ -468,23 +199,314 @@ pause_after = 0.1           # Slow typing
 
 [[step]]
 type = "press"
-keys = ["ctrl+s"]           # Save
+keys = ["enter"]
 
 [[step]]
 type = "capture"
-output = "after_save"
+output = "file_opened"
 ```
 
 ---
 
-### Contributing
+## Configuration Reference
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon).
+### Required Fields
+
+```toml
+app_module = "path.to.module"      # Python module with your app
+app_class = "MyApp"                # Textual App class name
+```
+
+### Global Settings
+
+```toml
+# Screen size
+screen_width = 100                 # Default: 80
+screen_height = 40                 # Default: 40
+
+# Timing
+initial_delay = 1.0                # Wait before first action (default: 1.0)
+
+# Behavior
+scroll_to_top = true               # Press "home" at start (default: true)
+module_path = "."                  # Add to sys.path (optional)
+
+# Output
+output_dir = "./screenshots"       # Where to save files (default: ".")
+formats = ["svg", "txt"]           # Formats to generate (default: both)
+
+# Tooltips
+capture_tooltips = true            # Capture tooltips (default: true)
+tooltip_selector = "*"             # CSS selector (default: all widgets)
+tooltip_include_empty = false      # Show widgets without tooltips (default: false)
+```
+
+### Action Types
+
+#### Press Keys
+```toml
+[[step]]
+type = "press"
+keys = ["tab", "ctrl+s", "enter"]  # List syntax (preferred)
+pause_after = 0.2                  # Seconds between keys (default: 0.2)
+
+# Legacy comma-separated syntax still works
+key = "tab,ctrl+s,enter"
+```
+
+**Supported modifiers**: `ctrl+`, `shift+`, `alt+`, `meta+`
+
+#### Click Button
+```toml
+[[step]]
+type = "click"
+label = "Submit"                   # Button text (spaces removed for ID)
+```
+
+#### Delay
+```toml
+[[step]]
+type = "delay"
+seconds = 1.5                      # Seconds to wait
+```
+
+#### Capture Screenshot
+```toml
+[[step]]
+type = "capture"
+output = "my_state"                # Optional: custom name
+formats = ["svg", "txt"]           # Optional: override global
+capture_tooltips = true            # Optional: override global
+tooltip_selector = "Button"        # Optional: custom selector
+tooltip_include_empty = false      # Optional: override global
+```
+
+If `output` is omitted, auto-generates `capture_001`, `capture_002`, etc.
+
+---
+
+## Advanced Features
+
+### Selective Formats
+
+Generate only what you need:
+
+```toml
+# Global default
+formats = ["svg"]  # Only SVG (faster)
+
+[[step]]
+type = "capture"
+output = "visual_only"
+# Uses global: svg only
+
+[[step]]
+type = "capture"
+output = "complete"
+formats = ["svg", "txt"]  # Override: both formats
+```
+
+Valid formats: `svg`, `txt`
+
+### Tooltip Configuration
+
+Fine-tune tooltip capture:
+
+```toml
+# Capture all widgets with tooltips
+[[step]]
+type = "capture"
+output = "all_tooltips"
+
+# Capture only buttons
+[[step]]
+type = "capture"
+output = "button_tooltips"
+tooltip_selector = "Button"
+
+# Include widgets without tooltips
+[[step]]
+type = "capture"
+output = "complete_audit"
+tooltip_include_empty = true
+```
+
+**Tooltip file format:**
+```
+# Tooltips captured from: my_state
+# Selector: *
+# Timestamp: 2025-12-20 10:30:45
+
+Button#run: Start the selected command
+Button#cancel: Abort operation (Esc)
+Input#search: Search for items
+Label#status: (no tooltip)
+```
+
+### Tooltip-Only Captures
+
+Skip expensive rendering for fast metadata extraction:
+
+```toml
+formats = []              # No SVG or TXT
+capture_tooltips = true
+
+[[step]]
+type = "capture"
+output = "metadata_only"
+# Creates only: metadata_only_tooltips.txt
+```
+
+**Use cases:**
+- Fast UI audits
+- Tooltip validation
+- LLM analysis pipelines
+- Documentation generation
+
+---
+
+## CLI Usage
+
+```bash
+# Run capture sequence
+textual-capture config.toml
+
+# Show all actions as they execute
+textual-capture config.toml --verbose
+
+# Suppress all output except errors
+textual-capture config.toml --quiet
+
+# Validate config without running
+textual-capture config.toml --dry-run
+```
+
+**Dry-run output example:**
+```
+Configuration: demo.toml
+App: my_app.MyApp
+Screen: 80x40
+Output Directory: ./screenshots
+Default Formats: svg, txt
+Capture Tooltips: True
+Tooltip Selector: *
+
+Planned Steps (4 total):
+  1. press: keys=['tab', 'tab', 'enter']
+  2. delay: 0.5s
+  3. capture: output="my_state", formats=[svg, txt], tooltips=*
+  4. press: keys=['ctrl+q']
+
+Validating module import...
+✓ Successfully imported MyApp from my_app
+
+✓ Configuration valid and ready to execute
+```
+
+---
+
+## 🤖 LLM-Driven Workflows
+
+**Primary Use Case**: AI assistants can generate configs, run captures, and analyze output.
+
+### How LLMs Use textual-capture
+
+1. **Generate TOML config** based on user request
+2. **Run with `--dry-run`** to validate
+3. **Execute capture** to get screenshots + tooltips
+4. **Analyze text files** (`.txt` and `_tooltips.txt`)
+5. **Report findings** to user
+
+### Example: Claude Code Integration
+
+User: *"Check if my settings dialog has proper tooltips"*
+
+Claude:
+1. Creates `settings_check.toml`:
+```toml
+app_module = "your_app"
+app_class = "YourApp"
+formats = []
+capture_tooltips = true
+tooltip_include_empty = true
+
+[[step]]
+type = "press"
+keys = ["ctrl+comma"]  # Open settings
+
+[[step]]
+type = "capture"
+output = "settings_tooltips"
+```
+
+2. Runs: `textual-capture settings_check.toml`
+3. Reads: `settings_tooltips_tooltips.txt`
+4. Reports: *"Found 3 buttons without tooltips: Button#apply, Button#reset, Button#advanced"*
+
+**Pro tip**: Copy `CLAUDE_SNIPPET.md` into your project's `CLAUDE.md` file to give Claude Code full context.
+
+---
+
+## Comparison with Other Tools
+
+| Feature                        | textual-dev screenshot | pytest-textual-snapshot | **textual-capture** |
+|-------------------------------|-------------------------|--------------------------|---------------------|
+| Single capture                | Yes                     | Yes                      | Yes                 |
+| Multi-step sequences          | No                      | No                       | ✅ Yes              |
+| Keyboard shortcuts            | No                      | No                       | ✅ Yes              |
+| Button clicks                 | No                      | No                       | ✅ Yes              |
+| Delays/timing                 | No                      | No                       | ✅ Yes              |
+| Auto-sequencing               | No                      | No                       | ✅ Yes              |
+| Tooltip capture               | No                      | No                       | ✅ Yes              |
+| Dry-run validation            | No                      | No                       | ✅ Yes              |
+| Organized output              | No                      | No                       | ✅ Yes              |
+| LLM-friendly                  | No                      | No                       | ✅ Yes              |
+| Human-readable config         | No                      | No                       | ✅ Yes              |
+
+---
+
+## Tips & Best Practices
+
+### For Documentation
+- Use `formats = ["svg"]` for faster generation
+- Use descriptive output names: `output = "main_menu"`
+- Keep sequences focused on one feature/flow
+
+### For LLM Analysis
+- Use `formats = ["txt"]` + `capture_tooltips = true`
+- Use `tooltip_include_empty = true` for audits
+- Auto-sequence unnamed captures for exploration
+
+### For Testing
+- Use `--dry-run` during development
+- Use `output_dir` to keep project root clean
+- Validate configs in CI with dry-run
+
+### For Performance
+- Use selective formats: `formats = ["svg"]` or `["txt"]`
+- Use `formats = []` for tooltip-only captures
+- Reduce `initial_delay` if your app renders quickly
+
+---
+
+## Examples
+
+See the `examples/` directory for:
+- `llm_review.toml` - LLM-driven UI analysis template
+- `keyboard_shortcuts.toml` - Complex keyboard workflows
+- `tooltip_audit.toml` - Accessibility checking
+- `documentation.toml` - Multi-capture documentation
+
+---
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon).
 
 Issues and feature requests: https://github.com/eyecantell/textual-capture/issues
 
 ---
 
-### License
+## License
 
 MIT © 2025 Paul Neumann
