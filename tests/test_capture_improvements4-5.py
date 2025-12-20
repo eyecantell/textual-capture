@@ -1,5 +1,6 @@
 """Tests for features 4-5: key modifiers and capture tooltips."""
 
+import logging
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
@@ -7,7 +8,6 @@ import pytest
 
 from textual_capture.capture import capture, execute_action, validate_config
 
-import logging
 logger = logging.getLogger(__name__)
 logging.getLogger("textual_capture").setLevel(logging.DEBUG)
 
@@ -269,7 +269,7 @@ output = "exclude_empty"
         # SimpleTestApp has buttons without tooltips - they should be excluded
         # Count lines with widget data (not header/comments)
         widget_lines = [line for line in content.split("\n") if line and not line.startswith("#")]
-
+        assert len(widget_lines) == 0
         # Should be 0 or minimal since SimpleTestApp buttons don't have tooltips by default
         # (This test verifies the default behavior)
 
@@ -449,9 +449,9 @@ keys = ["tab", "ctrl+s"]
         toml_file.write_text(toml_content)
 
         with pytest.raises(SystemExit) as exc_info:
-            from textual_capture.capture import main
-
             import sys
+
+            from textual_capture.capture import main
 
             sys.argv = ["textual-capture", str(toml_file), "--dry-run"]
             main()
@@ -475,9 +475,9 @@ pause_after = 0.5
         toml_file.write_text(toml_content)
 
         with pytest.raises(SystemExit) as exc_info:
-            from textual_capture.capture import main
-
             import sys
+
+            from textual_capture.capture import main
 
             sys.argv = ["textual-capture", str(toml_file), "--dry-run"]
             main()
@@ -501,9 +501,9 @@ type = "capture"
         toml_file.write_text(toml_content)
 
         with pytest.raises(SystemExit) as exc_info:
-            from textual_capture.capture import main
-
             import sys
+
+            from textual_capture.capture import main
 
             sys.argv = ["textual-capture", str(toml_file), "--dry-run"]
             main()
@@ -528,9 +528,9 @@ tooltip_selector = "Button"
         toml_file.write_text(toml_content)
 
         with pytest.raises(SystemExit) as exc_info:
-            from textual_capture.capture import main
-
             import sys
+
+            from textual_capture.capture import main
 
             sys.argv = ["textual-capture", str(toml_file), "--dry-run"]
             main()
@@ -555,9 +555,9 @@ output = "tooltips_only"
         toml_file.write_text(toml_content)
 
         with pytest.raises(SystemExit) as exc_info:
-            from textual_capture.capture import main
-
             import sys
+
+            from textual_capture.capture import main
 
             sys.argv = ["textual-capture", str(toml_file), "--dry-run"]
             main()

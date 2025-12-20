@@ -260,8 +260,8 @@ def validate_config(config: dict[str, Any]) -> None:
             if "pause_after" in step:
                 try:
                     float(step["pause_after"])
-                except (TypeError, ValueError):
-                    raise ValueError(f"Step {i}: 'pause_after' must be a number")
+                except (TypeError, ValueError) as e:
+                    raise ValueError(f"Step {i}: 'pause_after' must be a number") from e
 
         # Validate capture action
         if step_type == "capture":
@@ -365,7 +365,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         print(f"  {i}. {step_type}: {detail_str}")
 
     # Test dynamic import (without running)
-    print(f"\nValidating module import...")
+    print("\nValidating module import...")
     try:
         module_path = config.get("module_path")
         if module_path:
@@ -375,7 +375,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         app_class_name = config["app_class"]
 
         module = __import__(app_module, fromlist=[app_class_name])
-        AppClass = getattr(module, app_class_name)
+        getattr(module, app_class_name)
         print(f"✓ Successfully imported {app_class_name} from {app_module}")
     except ImportError as e:
         print(f"✗ Import failed: {e}")
