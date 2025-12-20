@@ -1,0 +1,122 @@
+# Documentation Screenshots
+# Generate clean SVG images for README, docs, and tutorials
+# Optimized for visual quality without extra metadata files
+
+# ============================================================================
+# REQUIRED: Update for your app
+# ============================================================================
+app_module = "demo_app"
+app_class = "DemoApp"
+module_path = "."
+
+# ============================================================================
+# Documentation-optimized configuration
+# ============================================================================
+output_dir = "./docs/screenshots"  # Organized location for docs
+formats = ["svg"]                  # Visual only - clean SVG files
+capture_tooltips = false           # Don't need tooltip files for docs
+
+# Screen configuration - choose size for your docs
+screen_width = 90                  # Wide enough to show features
+screen_height = 40                 # Tall enough to avoid scrolling
+initial_delay = 1.0
+scroll_to_top = true
+
+# ============================================================================
+# Screenshot sequence - name each capture descriptively
+# ============================================================================
+
+# Main screen / landing page
+[[step]]
+type = "capture"
+output = "01_main_screen"
+# Creates: docs/screenshots/01_main_screen.svg
+# Use in README: ![Main Screen](docs/screenshots/01_main_screen.svg)
+
+# Show focused button (for keyboard navigation docs)
+[[step]]
+type = "press"
+keys = ["tab"]
+pause_between = 0.2
+
+[[step]]
+type = "delay"
+seconds = 0.3
+
+[[step]]
+type = "capture"
+output = "02_focused_button"
+# Shows keyboard focus indicator
+
+# Show button activated / dialog opened
+[[step]]
+type = "press"
+keys = ["enter"]
+pause_between = 0.2
+
+[[step]]
+type = "delay"
+seconds = 0.5
+
+[[step]]
+type = "capture"
+output = "03_after_action"
+# Shows result of button press
+
+# Example: Settings dialog (adapt to your app)
+# [[step]]
+# type = "press"
+# keys = ["ctrl+comma"]            # Open settings
+# pause_between = 0.2
+
+# [[step]]
+# type = "delay"
+# seconds = 0.5
+
+# [[step]]
+# type = "capture"
+# output = "04_settings_dialog"
+
+# Example: Feature showcase
+# [[step]]
+# type = "click"
+# label = "Advanced Options"
+
+# [[step]]
+# type = "delay"
+# seconds = 0.5
+
+# [[step]]
+# type = "capture"
+# output = "05_advanced_options"
+
+# ============================================================================
+# Tips for documentation screenshots:
+# ============================================================================
+# 1. Use descriptive output names with numbering: "01_feature_name"
+# 2. Keep screen size consistent across all screenshots
+# 3. Use svg format for crisp, scalable images
+# 4. Capture key workflows step-by-step
+# 5. Include captions in your docs to explain each screenshot
+# 6. Re-run this config after UI changes to keep docs in sync
+#
+# Recommended documentation structure:
+#
+# ## Main Interface
+# ![Main Screen](docs/screenshots/01_main_screen.svg)
+# The main application screen shows...
+#
+# ## Keyboard Navigation
+# ![Focused Button](docs/screenshots/02_focused_button.svg)
+# Press Tab to move between elements...
+#
+# ## Running Operations
+# ![After Action](docs/screenshots/03_after_action.svg)
+# Click "Run Selected" or press Enter to...
+#
+# Benefits:
+# - Consistent, reproducible screenshots
+# - Easy to update when UI changes
+# - Automated workflow (no manual clicking)
+# - Clean SVG files (no tooltips or text files)
+# - Organized in dedicated directory

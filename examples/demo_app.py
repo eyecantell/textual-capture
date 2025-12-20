@@ -51,10 +51,10 @@ class DemoApp(App[None]):
         """Create child widgets for the app."""
         yield Header()
         yield Container(
-            Label("Welcome to the Demo App", id="title"),
-            Static(self.status_text, id="status"),
-            Button("Run Selected", id="RunSelected"),
-            Button("Cancel", id="Cancel"),
+            Label("Welcome to the Demo App", id="title", tooltip="Main application title"),
+            Static(self.status_text, id="status", tooltip="Current operation status"),
+            Button("Run Selected", id="RunSelected", tooltip="Execute the selected operation (Enter)"),
+            Button("Cancel", id="Cancel", tooltip="Cancel the current operation (Esc)"),
         )
         yield Footer()
 

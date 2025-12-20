@@ -1,60 +1,83 @@
 # Basic example configuration for textual-capture
-# This demonstrates all major features and action types
+# This demonstrates all major features and action types using v0.2.0 API
 
 app_module = "demo_app"
 app_class = "DemoApp"
+module_path = "."          # Look for demo_app in examples directory
+
+# Screen configuration
 screen_width = 90
 screen_height = 40
 
-# Optional configuration (showing defaults)
+# Timing configuration
 initial_delay = 1.0        # Seconds to wait for initial render
 scroll_to_top = true       # Press 'home' key at start
-module_path = "."          # Look for demo_app in current directory
 
-# Action sequence
-# Each [[step]] defines one action in the capture sequence
+# Output configuration (v0.2.0+)
+output_dir = "."           # Save in current directory
+formats = ["svg", "txt"]   # Generate both formats by default
 
-# 1. Navigate with keyboard (comma-separated keys)
+# Tooltip capture (v0.2.0+)
+capture_tooltips = true    # Capture widget tooltips
+widget_selector = "*"      # All widgets (can use "Button", ".class", etc.)
+tooltip_include_empty = false
+
+# ============================================================================
+# Action sequence - each [[step]] defines one action
+# ============================================================================
+
+# 1. Capture initial state with all outputs
+[[step]]
+type = "capture"
+output = "initial_state"
+# Creates: initial_state.svg, initial_state.txt, initial_state_tooltips.txt
+
+# 2. Navigate with keyboard (list syntax - preferred in v0.2.0+)
 [[step]]
 type = "press"
-key = "tab,tab"            # Tab twice to focus "Cancel" button
+keys = ["tab", "tab"]      # Tab twice to focus "Cancel" button
+pause_between = 0.2        # Seconds between each key press
 
-# 2. Wait for visual state to settle
+# 3. Wait for visual state to settle
 [[step]]
 type = "delay"
 seconds = 0.5
 
-# 3. Capture first screenshot (explicit name)
+# 4. Capture with auto-sequencing
 [[step]]
 type = "capture"
-output = "initial_state"   # Saves initial_state.svg and initial_state.txt
+# Output omitted - will auto-generate as capture_001.svg, capture_001.txt, capture_001_tooltips.txt
 
-# 4. Navigate back and press enter
+# 5. Navigate back with modifier key and activate
 [[step]]
 type = "press"
-key = "shift+tab,enter"    # Navigate back and activate button
+keys = ["shift+tab", "enter"]  # Navigate back and press enter
+pause_between = 0.3
 
-# 5. Capture after button press (auto-sequencing)
+# 6. Capture with selective format (override global setting)
 [[step]]
 type = "capture"
-# Output omitted - will auto-generate as capture_001.svg
+output = "after_enter"
+formats = ["txt"]          # Only generate text output (faster)
 
-# 6. Click a button by label
+# 7. Click a button by label
 [[step]]
 type = "click"
 label = "Run Selected"     # Finds button with this text
 
-# 7. Wait to show the result
+# 8. Wait to show the result
 [[step]]
 type = "delay"
-seconds = 1.0
+seconds = 0.5
 
-# 8. Final capture (auto-sequencing continues)
+# 9. Capture with custom tooltip selector
 [[step]]
 type = "capture"
-# Will auto-generate as capture_002.svg (counter continues)
+output = "after_click"
+widget_selector = "Button" # Only capture Button tooltips
+formats = ["svg", "txt"]   # Back to both formats
 
-# 9. Press 'q' to quit cleanly
+# 10. Press 'q' to quit cleanly
 [[step]]
 type = "press"
-key = "q"
+keys = ["q"]

@@ -1,0 +1,156 @@
+# Keyboard Navigation Testing
+# Verify keyboard shortcuts, tab order, and focus management
+# Perfect for testing accessibility and keyboard-only workflows
+
+# ============================================================================
+# REQUIRED: Update for your app
+# ============================================================================
+app_module = "demo_app"
+app_class = "DemoApp"
+module_path = "."
+
+# ============================================================================
+# Configuration for detailed navigation testing
+# ============================================================================
+output_dir = "."
+formats = ["txt"]                  # Text format for easy comparison
+capture_tooltips = true            # Track which widgets have focus
+screen_width = 90
+screen_height = 40
+initial_delay = 1.0
+
+# ============================================================================
+# Test tab navigation (forward)
+# ============================================================================
+
+[[step]]
+type = "capture"
+output = "nav_01_initial"
+# Capture starting focus state
+
+[[step]]
+type = "press"
+keys = ["tab"]
+pause_between = 0.2
+
+[[step]]
+type = "capture"
+output = "nav_02_after_tab"
+# Check: Did focus move to next widget?
+
+[[step]]
+type = "press"
+keys = ["tab"]
+pause_between = 0.2
+
+[[step]]
+type = "capture"
+output = "nav_03_after_tab_2"
+# Check: Tab order correct?
+
+# ============================================================================
+# Test reverse navigation (shift+tab)
+# ============================================================================
+
+[[step]]
+type = "press"
+keys = ["shift+tab"]
+pause_between = 0.2
+
+[[step]]
+type = "capture"
+output = "nav_04_after_shift_tab"
+# Check: Did focus move backward correctly?
+
+[[step]]
+type = "press"
+keys = ["shift+tab"]
+pause_between = 0.2
+
+[[step]]
+type = "capture"
+output = "nav_05_after_shift_tab_2"
+# Check: Back to initial widget?
+
+# ============================================================================
+# Test keyboard shortcuts
+# ============================================================================
+
+# Test Enter key activation
+[[step]]
+type = "press"
+keys = ["tab", "enter"]            # Focus button and activate
+pause_between = 0.3
+
+[[step]]
+type = "delay"
+seconds = 0.5
+
+[[step]]
+type = "capture"
+output = "nav_06_after_enter"
+# Check: Did button activation work?
+
+# Test application shortcuts (adapt to your app)
+# [[step]]
+# type = "press"
+# keys = ["ctrl+s"]                # Save shortcut
+# pause_between = 0.2
+
+# [[step]]
+# type = "delay"
+# seconds = 0.5
+
+# [[step]]
+# type = "capture"
+# output = "nav_07_after_ctrl_s"
+
+# Test Escape key
+# [[step]]
+# type = "press"
+# keys = ["escape"]
+# pause_between = 0.2
+
+# [[step]]
+# type = "capture"
+# output = "nav_08_after_escape"
+
+# ============================================================================
+# Test arrow key navigation (for lists, menus, etc.)
+# ============================================================================
+
+# [[step]]
+# type = "press"
+# keys = ["down", "down", "down"]
+# pause_between = 0.2
+
+# [[step]]
+# type = "capture"
+# output = "nav_09_after_down"
+
+# [[step]]
+# type = "press"
+# keys = ["up"]
+# pause_between = 0.2
+
+# [[step]]
+# type = "capture"
+# output = "nav_10_after_up"
+
+# ============================================================================
+# Analysis tips:
+# ============================================================================
+# 1. Run: textual-capture keyboard_nav.toml --verbose
+# 2. Compare consecutive .txt files to see focus changes
+# 3. Check _tooltips.txt files to identify focused widgets
+# 4. Verify tab order is logical and intuitive
+# 5. Ensure all interactive widgets are keyboard-accessible
+# 6. Test that shortcuts work as documented
+#
+# What to look for:
+# - Logical tab order (top-to-bottom, left-to-right)
+# - All buttons/inputs accessible via keyboard
+# - Shift+tab reverses tab order correctly
+# - Shortcuts (ctrl+, alt+) work as expected
+# - Focus visibility (highlighted/outlined widget)
+# - No focus traps (can escape all modals/dialogs)

@@ -1,24 +1,30 @@
 # LLM-Friendly TUI Review Template
-# Copy and adapt this for quick Textual app reviews
+# Optimized for AI assistant analysis of Textual applications
+# Copy and adapt this for quick TUI reviews
 
 # ============================================================================
 # REQUIRED: Update these for the target app
 # ============================================================================
 app_module = "your_app_module"     # Module containing the Textual app
 app_class = "YourApp"              # Textual App class name
-module_path = "."                  # Path to find the module (usually "." for current directory)
+module_path = "."                  # Path to find the module (usually ".")
 
 # ============================================================================
-# Optional: Adjust screen size if needed
+# LLM-optimized output configuration
 # ============================================================================
-screen_width = 100
+output_dir = "."                   # Output directory for captures
+formats = ["txt"]                  # Text only - faster and LLM-friendly
+capture_tooltips = true            # Include tooltip metadata
+widget_selector = "*"              # Capture all widgets
+tooltip_include_empty = false      # Set to true for accessibility audits
+
+# ============================================================================
+# Screen and timing
+# ============================================================================
+screen_width = 100                 # Adjust to your app
 screen_height = 40
-
-# ============================================================================
-# Optional: Timing configuration
-# ============================================================================
-initial_delay = 1.0                # Wait before first action (default: 1.0)
-scroll_to_top = true               # Press "home" at start (default: true)
+initial_delay = 1.0                # Wait before first action
+scroll_to_top = true               # Press "home" at start
 
 # ============================================================================
 # Basic review sequence: capture initial state + one interaction
@@ -27,93 +33,89 @@ scroll_to_top = true               # Press "home" at start (default: true)
 [[step]]
 type = "capture"
 output = "initial_state"
-# Captures the app's starting state
-# Creates: initial_state.svg and initial_state.txt
+# Creates: initial_state.txt, initial_state_tooltips.txt
+# LLM can read and analyze the text representation
 
 [[step]]
 type = "press"
-key = "tab"
-# Navigate to next focusable element
-# Use comma-separated keys: "tab,enter,down" for multiple presses
+keys = ["tab"]                     # Navigate to next focusable element
+pause_between = 0.2
 
 [[step]]
 type = "delay"
-seconds = 0.3
-# Wait for UI update before next step
+seconds = 0.3                      # Wait for UI update
 
 [[step]]
 type = "capture"
-# Auto-generates capture_001.svg (output field omitted)
-# Subsequent captures will be: capture_002.svg, capture_003.svg, etc.
+# Auto-generates: capture_001.txt, capture_001_tooltips.txt
+# Subsequent captures will be: capture_002, capture_003, etc.
 
 # ============================================================================
-# Add more steps as needed
+# Example interaction patterns - uncomment and adapt as needed
 # ============================================================================
 
 # Press multiple keys in sequence
 # [[step]]
 # type = "press"
-# key = "tab,tab,enter,down"
-# # Comma-separated: tab, tab, enter, down
+# keys = ["tab", "tab", "enter", "down"]
+# pause_between = 0.2
 
 # Click a button by its label
 # [[step]]
 # type = "click"
 # label = "Settings"
-# # Finds button with text "Settings" (spaces in label are removed for ID matching)
+# # Finds button with text "Settings"
 
 # Wait between actions
 # [[step]]
 # type = "delay"
-# seconds = 1.0
+# seconds = 0.5
 
 # Capture with a specific name
 # [[step]]
 # type = "capture"
 # output = "settings_dialog"
-# # Creates: settings_dialog.svg and settings_dialog.txt
-
-# Capture with auto-generated name
-# [[step]]
-# type = "capture"
-# # Creates: capture_002.svg (counter continues even after named captures)
 
 # ============================================================================
-# Example: Complete workflow for reviewing a dialog
+# Advanced: Capture only tooltips (fastest - no rendering)
 # ============================================================================
 
 # [[step]]
-# type = "press"
-# key = "shift+tab"
-# # Navigate backward
+# type = "capture"
+# output = "tooltip_metadata"
+# formats = []                     # Skip SVG and TXT rendering
+# capture_tooltips = true          # Only create _tooltips.txt file
 
-# [[step]]
-# type = "click"
-# label = "Run Selected"
-# # Click the "Run Selected" button
-
-# [[step]]
-# type = "delay"
-# seconds = 0.5
-# # Wait for dialog to appear
+# ============================================================================
+# Advanced: Capture specific widget types only
+# ============================================================================
 
 # [[step]]
 # type = "capture"
-# output = "after_run"
-# # Capture the result
+# output = "button_tooltips"
+# widget_selector = "Button"       # Only Button widgets
 
 # [[step]]
-# type = "press"
-# key = "q"
-# # Quit the app cleanly (if supported)
+# type = "capture"
+# output = "input_tooltips"
+# widget_selector = "Input"        # Only Input widgets
 
 # ============================================================================
 # Tips for LLMs using this template:
 # ============================================================================
 # 1. Always set module_path to "." or the appropriate directory
-# 2. Read the .txt output files - they contain the text representation perfect for analysis
-# 3. Use --verbose flag when running to see all actions: `textual-capture llm_review.toml --verbose`
-# 4. Omit "output" in capture steps to auto-generate sequential names
-# 5. Use named outputs for specific states you want to reference later
-# 6. Test keyboard navigation with "tab", "shift+tab", "up", "down", "enter"
-# 7. Click buttons using their visible label text (spaces are automatically removed)
+# 2. Read .txt files - they contain plain text representation of the UI
+# 3. Read _tooltips.txt files - they contain widget metadata and tooltips
+# 4. Use --dry-run flag first to validate: textual-capture config.toml --dry-run
+# 5. Use --verbose flag to see actions: textual-capture config.toml --verbose
+# 6. Omit "output" in capture steps to auto-generate sequential names
+# 7. Use named outputs for specific states you want to reference
+# 8. Test keyboard navigation with: "tab", "shift+tab", "up", "down", "enter"
+# 9. Use modifier keys like: "ctrl+s", "ctrl+shift+p", "alt+f4"
+# 10. Click buttons using their visible label text (case-sensitive)
+#
+# Analysis workflow:
+# 1. Create config from this template
+# 2. Run: pdm run textual-capture config.toml --verbose
+# 3. Read all .txt and _tooltips.txt files
+# 4. Report findings: layout issues, missing tooltips, navigation problems, etc.

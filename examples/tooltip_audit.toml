@@ -1,0 +1,100 @@
+# Tooltip Accessibility Audit
+# Fast metadata extraction to find widgets missing tooltips
+# Perfect for accessibility reviews and UI audits
+
+# ============================================================================
+# REQUIRED: Update for your app
+# ============================================================================
+app_module = "demo_app"
+app_class = "DemoApp"
+module_path = "."
+
+# ============================================================================
+# Fast audit configuration - no rendering!
+# ============================================================================
+output_dir = "."
+formats = []                       # Skip SVG and TXT rendering (fastest!)
+capture_tooltips = true            # Only generate _tooltips.txt files
+widget_selector = "*"              # All widgets
+tooltip_include_empty = true       # IMPORTANT: Show widgets without tooltips
+
+# ============================================================================
+# Screen configuration (used for app initialization only)
+# ============================================================================
+screen_width = 90
+screen_height = 40
+initial_delay = 1.0
+
+# ============================================================================
+# Audit sequence - capture tooltips at different app states
+# ============================================================================
+
+# Capture initial state tooltips
+[[step]]
+type = "capture"
+output = "initial_tooltips"
+# Creates only: initial_tooltips_tooltips.txt
+# Check for "(no tooltip)" entries
+
+# Navigate to next screen/dialog (if applicable)
+[[step]]
+type = "press"
+keys = ["tab", "tab", "enter"]
+pause_between = 0.2
+
+[[step]]
+type = "delay"
+seconds = 0.5
+
+# Capture tooltips after navigation
+[[step]]
+type = "capture"
+output = "after_navigation"
+# Creates only: after_navigation_tooltips.txt
+
+# ============================================================================
+# Advanced: Audit specific widget types
+# ============================================================================
+
+# Audit only buttons
+[[step]]
+type = "capture"
+output = "button_audit"
+widget_selector = "Button"
+# Creates: button_audit_tooltips.txt with only Button widgets
+
+# Audit only inputs
+# [[step]]
+# type = "capture"
+# output = "input_audit"
+# widget_selector = "Input"
+
+# Audit widgets with CSS class
+# [[step]]
+# type = "capture"
+# output = "important_widgets"
+# widget_selector = ".important"
+
+# ============================================================================
+# How to analyze results:
+# ============================================================================
+# 1. Run: textual-capture tooltip_audit.toml --verbose
+# 2. Check *_tooltips.txt files for "(no tooltip)" entries
+# 3. Look for pattern: WidgetType#id: (no tooltip)
+# 4. Report which widgets need tooltips added
+#
+# Example output format:
+# # Tooltips captured from: initial_tooltips
+# # Selector: *
+# # Timestamp: 2025-12-20 10:30:45
+#
+# Label#title: Main application title
+# Static#status: Current operation status
+# Button#RunSelected: Execute the selected operation (Enter)
+# Button#Cancel: (no tooltip)  <-- NEEDS TOOLTIP!
+#
+# Benefits of this approach:
+# - Extremely fast (no rendering)
+# - Complete coverage (all app states)
+# - Easy to parse and analyze
+# - Perfect for CI/CD accessibility checks
