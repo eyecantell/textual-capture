@@ -137,9 +137,7 @@ def validate_config(config: dict[str, Any]) -> None:
 
         invalid_formats = set(formats) - set(VALID_FORMATS)
         if invalid_formats:
-            raise ValueError(
-                f"Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}"
-            )
+            raise ValueError(f"Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}")
 
     # Validate action steps
     steps = config.get("step", [])
@@ -164,9 +162,7 @@ def validate_config(config: dict[str, Any]) -> None:
 
             invalid_formats = set(step_formats) - set(VALID_FORMATS)
             if invalid_formats:
-                raise ValueError(
-                    f"Step {i}: Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}"
-                )
+                raise ValueError(f"Step {i}: Invalid format(s): {invalid_formats}. Valid formats are: {VALID_FORMATS}")
 
 
 def dry_run(config: dict[str, Any], toml_path: str) -> None:
@@ -194,25 +190,25 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         details = []
 
         if step_type == "press":
-            details.append(f"keys=\"{step.get('key', '')}\"")
+            details.append(f'keys="{step.get("key", "")}"')
         elif step_type == "delay":
             details.append(f"{step.get('seconds', 0.5)}s")
         elif step_type == "click":
-            details.append(f"label=\"{step.get('label', '')}\"")
+            details.append(f'label="{step.get("label", "")}"')
         elif step_type == "capture":
             output = step.get("output")
             if not output:
                 capture_counter += 1
                 output = f"capture_{capture_counter:03d}"
             formats = step.get("formats", config.get("formats", VALID_FORMATS))
-            details.append(f"output=\"{output}\"")
+            details.append(f'output="{output}"')
             details.append(f"formats=[{', '.join(formats)}]")
 
         detail_str = ", ".join(details) if details else ""
         print(f"  {i}. {step_type}: {detail_str}")
 
     # Test dynamic import (without running)
-    print(f"\nValidating module import...")
+    print("\nValidating module import...")
     try:
         module_path = config.get("module_path")
         if module_path:
@@ -222,7 +218,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
         app_class_name = config["app_class"]
 
         module = __import__(app_module, fromlist=[app_class_name])
-        AppClass = getattr(module, app_class_name)
+        getattr(module, app_class_name)
         print(f"✓ Successfully imported {app_class_name} from {app_module}")
     except ImportError as e:
         print(f"✗ Import failed: {e}")
