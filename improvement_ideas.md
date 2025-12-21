@@ -4,7 +4,7 @@
 Prioritized by implementation difficulty (Easiest → Hardest).  
 Each item includes estimated effort, rationale, proposed configuration syntax, and notes on value vs. complexity.
 
-### 1. Dry Run Mode
+### 1. Dry Run Mode  ** Implemented 12/20/2025 **
 **Difficulty**: Easy (~30–45 min)  
 **Value**: High for development and CI workflows  
 
@@ -20,7 +20,7 @@ textual-capture config.toml --dry-run
 - Safe for CI/validation scripts.
 - Useful when sharing sequences with others or with LLMs.
 
-### 2. Output Directory Configuration
+### 2. Output Directory Configuration ** Implemented 12/20/2025 **
 **Difficulty**: Easy (~30 min)  
 **Value**: High – cleaner project organization  
 
@@ -33,7 +33,7 @@ output_dir = "./screenshots"  # Default: current working directory
 
 All capture files (SVG, TXT, and future formats) will be placed here. Directory created automatically if missing.
 
-### 3. Selective Capture Formats
+### 3. Selective Capture Formats ** Implemented 12/20/2025 **
 **Difficulty**: Easy (~45 min)  
 **Value**: Medium-High – reduces clutter, faster runs  
 
@@ -51,7 +51,7 @@ output = "initial_state"
 formats = ["svg"]
 ```
 
-### 4. Key Modifier Combinations
+### 4. Key Modifier Combinations ** Implemented 12/20/2025 **
 **Difficulty**: Easy (~45 min)  
 **Value**: Medium – improves usability for common shortcuts  
 
@@ -68,7 +68,7 @@ keys = ["tab", "ctrl+c", "enter"]  # Array for sequences (recommended for clarit
 
 Backwards compatibility note: keep supporting comma-separated strings for now, but document array as preferred.
 
-### 5. Log Tooltips Programmatically
+### 5. Log Tooltips Programmatically ** Implemented 12/20/2025 **
 **Difficulty**: Medium (~1–2 hours)  
 **Value**: Very High – especially for LLM-driven review and documentation  
 
