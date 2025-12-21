@@ -26,6 +26,7 @@ app_class = "MyTextualApp"                # App class to instantiate
 # Output configuration
 output_dir = "./screenshots"              # Where to save files (default: ".")
 formats = ["svg", "txt"]                  # Formats to generate (default: both)
+capture_prefix = "mysequence"             # Prefix for auto-sequenced captures (default: "capture")
 
 # Tooltip capture (enabled by default)
 capture_tooltips = true                   # Auto-capture tooltips with screenshots
@@ -139,10 +140,11 @@ Check `tooltip_audit_tooltips.txt` for widgets with `(no tooltip)`.
 ```toml
 formats = ["txt"]
 capture_tooltips = true
+capture_prefix = "exploration"            # Custom prefix for organization
 
 [[step]]
 type = "capture"
-# Auto: capture_001.svg, capture_001.txt, capture_001_tooltips.txt
+# Auto: exploration_001.svg, exploration_001.txt, exploration_001_tooltips.txt
 
 [[step]]
 type = "press"
@@ -150,7 +152,7 @@ keys = ["tab"]
 
 [[step]]
 type = "capture"
-# Auto: capture_002.svg, capture_002.txt, capture_002_tooltips.txt
+# Auto: exploration_002.svg, exploration_002.txt, exploration_002_tooltips.txt
 
 # Continue exploring...
 ```

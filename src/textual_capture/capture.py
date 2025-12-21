@@ -160,7 +160,8 @@ async def execute_action(
         output = action.get("output")
         if not output:
             capture_counter["count"] += 1
-            output = f"capture_{capture_counter['count']:03d}"
+            prefix = config.get("capture_prefix", "capture")
+            output = f"{prefix}_{capture_counter['count']:03d}"
 
         # Get formats: per-step override or global default
         formats = action.get("formats", config.get("formats", VALID_FORMATS))
@@ -236,6 +237,18 @@ def validate_config(config: dict[str, Any]) -> None:
 
     if "tooltip_include_empty" in config and not isinstance(config["tooltip_include_empty"], bool):
         raise ValueError("'tooltip_include_empty' must be a boolean")
+
+    # Validate capture_prefix if specified
+    if "capture_prefix" in config:
+        prefix = config["capture_prefix"]
+        if not isinstance(prefix, str):
+            raise ValueError("'capture_prefix' must be a string")
+        if not prefix:
+            raise ValueError("'capture_prefix' cannot be empty")
+        # Check for invalid filename characters
+        invalid_chars = ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
+        if any(char in prefix for char in invalid_chars):
+            raise ValueError(f"'capture_prefix' contains invalid characters. Avoid: {' '.join(invalid_chars)}")
 
     # Validate action steps
     steps = config.get("step", [])
@@ -314,6 +327,7 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
     print(f"Capture Tooltips: {config.get('capture_tooltips', True)}")
     if config.get("capture_tooltips", True):
         print(f"Tooltip Selector: {config.get('widget_selector', '*')}")
+    print(f"Capture Prefix: {config.get('capture_prefix', 'capture')}")
     print(f"Initial Delay: {config.get('initial_delay', 1.0)}s")
     print(f"Scroll to Top: {config.get('scroll_to_top', True)}")
 
@@ -347,7 +361,8 @@ def dry_run(config: dict[str, Any], toml_path: str) -> None:
             output = step.get("output")
             if not output:
                 capture_counter += 1
-                output = f"capture_{capture_counter:03d}"
+                prefix = config.get("capture_prefix", "capture")
+                output = f"{prefix}_{capture_counter:03d}"
 
             formats = step.get("formats", config.get("formats", VALID_FORMATS))
             capture_tooltips = step.get("capture_tooltips", config.get("capture_tooltips", True))

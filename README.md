@@ -93,6 +93,23 @@ type = "capture"
 # Creates: capture_002.svg, capture_002.txt, capture_002_tooltips.txt
 ```
 
+**Custom prefix for better organization:**
+```toml
+capture_prefix = "startup"
+
+[[step]]
+type = "capture"
+# Creates: startup_001.svg, startup_001.txt, startup_001_tooltips.txt
+
+[[step]]
+type = "press"
+keys = ["tab"]
+
+[[step]]
+type = "capture"
+# Creates: startup_002.svg, startup_002.txt, startup_002_tooltips.txt
+```
+
 ### Keyboard Shortcuts
 Full modifier support:
 ```toml
@@ -234,6 +251,7 @@ module_path = "."                  # Add to sys.path (optional)
 # Output
 output_dir = "./screenshots"       # Where to save files (default: ".")
 formats = ["svg", "txt"]           # Formats to generate (default: both)
+capture_prefix = "myflow"          # Prefix for auto-named captures (default: "capture")
 
 # Tooltips
 capture_tooltips = true            # Capture tooltips (default: true)
