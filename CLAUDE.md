@@ -55,7 +55,7 @@ The main module provides a universal screenshot capture tool that can work with 
 
 ### TOML Configuration Structure
 
-Current API (as of v0.2.0):
+Current API (as of v0.3.0):
 ```toml
 # Required
 app_module = "module_name"         # Python module containing the app
